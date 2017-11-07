@@ -12,7 +12,7 @@ flags = tf.app.flags
 
 flags.DEFINE_string('log_dir', './logs', 'Log direction')
 flags.DEFINE_string('ckpt_dir', './ckpt', 'Check point direction')
-flags.DEFINE_float('learning_rate', 0.001, 'Learning rate')
+flags.DEFINE_float('learning_rate', 0.0001, 'Learning rate')
 flags.DEFINE_integer('batch_size', 100, 'Batch size')
 flags.DEFINE_integer('num_steps', 100000, 'Number of steps to run')
 flags.DEFINE_integer('decay_steps', 100, '')
@@ -112,11 +112,11 @@ def main(_):
         for i in xrange(FLAGS.start_step, FLAGS.max_steps + 1):
             # if i % 1000 == 0 and i != 1:
             #     time.sleep(60)
-            sess.run(train_step)
             if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
                 acc, summary = sess.run([accuracy, merged])
                 writer.add_summary(summary, i)
                 print acc
+            sess.run(train_step)
 
 
         coord.request_stop()
