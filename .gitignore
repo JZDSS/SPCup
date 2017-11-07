@@ -6,4 +6,5 @@ data/*/*.jpg
 SPCup/logs/
 tfmodels/
 caffemodels/
-
+patches/
+spc_classes.txt
