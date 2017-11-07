@@ -1,4 +1,4 @@
-name: "ResNet-152"
+name: "ResNet_152"
 input: "data"
 input_dim: 1
 input_dim: 3

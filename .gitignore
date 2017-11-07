@@ -1,3 +1,9 @@
 *.npy
 *.caffemodel
-.idea/
+SPCup/.idea/
+data/*/*.jpg
+*.pyc
+SPCup/logs/
+tfmodels/
+caffemodels/
+

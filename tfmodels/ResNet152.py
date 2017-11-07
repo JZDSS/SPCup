@@ -1,6 +1,6 @@
 from kaffe.tensorflow import Network
 
-class ResNet-152(Network):
+class ResNet_152(Network):
     def setup(self):
         (self.feed('data')
              .conv(7, 7, 64, 2, 2, biased=False, relu=False, name='conv1')
