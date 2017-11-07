@@ -52,10 +52,10 @@ def main(_):
             writer = train_writer if dice != 0 else valid_writer
             for patch in get_patches(img, FLAGS.max_patches):
                 patch_raw = patch.tostring()
-                label_raw = np.array([label]).tostring()
+                label_raw = np.array([label]).astype(np.int32).tostring()
                 example = tf.train.Example(features=tf.train.Features(feature={
-                    'label': _bytes_feature(patch_raw),
-                    'patch_raw': _bytes_feature(label_raw)}))
+                    'patch_raw': _bytes_feature(patch_raw),
+                    'label': _bytes_feature(label_raw)}))
                 writer.write(example.SerializeToString())
 
     train_writer.close()

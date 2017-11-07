@@ -44,6 +44,7 @@ class Network(object):
         self.use_dropout = tf.placeholder_with_default(tf.constant(1.0),
                                                        shape=[],
                                                        name='use_dropout')
+        self.weight_decay = 0.0005
         self.setup()
 
     def setup(self):
@@ -95,7 +96,8 @@ class Network(object):
 
     def make_var(self, name, shape):
         '''Creates a new TensorFlow variable.'''
-        return tf.get_variable(name, shape, trainable=self.trainable)
+        return tf.get_variable(name, shape, trainable=self.trainable,
+                               regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay))
 
     def validate_padding(self, padding):
         '''Verifies that the padding is one of the supported ones.'''
@@ -195,8 +197,13 @@ class Network(object):
                 feed_in = tf.reshape(input, [-1, dim])
             else:
                 feed_in, dim = (input, input_shape[-1].value)
-            weights = self.make_var('weights', shape=[dim, num_out])
-            biases = self.make_var('biases', [num_out])
+
+            weights = tf.get_variable('weights', [dim, num_out], initializer=tf.truncated_normal_initializer(),
+                                      trainable=self.trainable)
+            # weights = self.make_var('weights', shape=[dim, num_out])
+            biases = tf.get_variable('biases', [num_out], initializer=tf.zeros_initializer(),
+                                     trainable=self.trainable)
+            # biases = self.make_var('biases', [num_out])
             op = tf.nn.relu_layer if relu else tf.nn.xw_plus_b
             fc = op(feed_in, weights, biases, name=scope.name)
             return fc

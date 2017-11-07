@@ -202,5 +202,5 @@ class ResNet_50(Network):
              # .avg_pool(7, 7, 1, 1, padding='VALID', name='pool5')
              # 输入尺寸变化，pooling的kernel size相应改变
              .avg_pool(2, 2, 1, 1, padding='VALID', name='pool5')
-             .fc(1000, relu=False, name='fc1000')
-             .softmax(name='prob'))
+             .fc(10, relu=False, name='fc10'))
+             # .softmax(name='prob'))
