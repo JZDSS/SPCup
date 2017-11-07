@@ -1,3 +1,4 @@
+#coding:utf-8
 import tensorflow as tf
 
 from ResNet50 import ResNet_50 as res50

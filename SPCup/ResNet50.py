@@ -1,3 +1,4 @@
+#coding:utf-8
 from kaffe.tensorflow import Network
 
 class ResNet_50(Network):
@@ -198,6 +199,8 @@ class ResNet_50(Network):
                    'bn5c_branch2c')
              .add(name='res5c')
              .relu(name='res5c_relu')
-             .avg_pool(7, 7, 1, 1, padding='VALID', name='pool5')
+             # .avg_pool(7, 7, 1, 1, padding='VALID', name='pool5')
+             # 输入尺寸变化，pooling的kernel size相应改变
+             .avg_pool(2, 2, 1, 1, padding='VALID', name='pool5')
              .fc(1000, relu=False, name='fc1000')
              .softmax(name='prob'))

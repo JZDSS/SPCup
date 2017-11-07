@@ -1,3 +1,4 @@
+#coding:utf-8
 from kaffe.tensorflow import Network
 
 class ResNet_152(Network):
