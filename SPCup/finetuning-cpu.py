@@ -78,15 +78,16 @@ def main(_):
         net = res50({'data': train_example_batch})
 
         fc10 = net.layers['fc10']
-        with tf.name_scope('scores'):
+    with tf.name_scope('scores'):
+        with tf.device('/gpu:7'):
             losses.sparse_softmax_cross_entropy(fc10, train_label_batch, scope='cross_entropy')
             total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
             tf.summary.scalar('loss', total_loss)
-            with tf.name_scope('accuracy'):
-                correct_prediction = tf.equal(tf.cast(tf.reshape(tf.argmax(fc10, 1), [-1, 1]), tf.int32),
-                                              train_label_batch)
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            tf.summary.scalar('accuracy', accuracy)
+        with tf.name_scope('accuracy'):
+            correct_prediction = tf.equal(tf.cast(tf.reshape(tf.argmax(fc10, 1), [-1, 1]), tf.int32),
+                                          train_label_batch)
+            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        tf.summary.scalar('accuracy', accuracy)
 
     with tf.name_scope('train'):
         global_step = tf.Variable(FLAGS.start_step, name="global_step")
