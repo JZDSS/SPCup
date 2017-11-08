@@ -66,15 +66,15 @@ def main(_):
         tf.gfile.DeleteRecursively(FLAGS.log_dir)
         tf.gfile.MakeDirs(FLAGS.log_dir)
     train_example_batch, train_label_batch = input_pipeline(['../patches/spc_train.tfrecords'], FLAGS.batch_size)
-    with tf.device('/gpu:7'):
-        tf.summary.image('show', train_example_batch, 1)
+
+    tf.summary.image('show', train_example_batch, 1)
         # with tf.name_scope('input'):
         #     x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
         #     tf.summary.image('show', x, 1)
         #
         # with tf.name_scope('label'):
         #     y_ = tf.placeholder(tf.int32, [None, 1], 'y')
-
+    with tf.device('/gpu:7'):
         net = res50({'data': train_example_batch})
 
         fc10 = net.layers['fc10']
