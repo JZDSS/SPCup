@@ -22,7 +22,7 @@ image, label = read_from_tfrecord(tf.train.string_input_producer(['../patches/sp
 with tf.Session() as sess:
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
-    for i in xrange(10):
+    for i in xrange(100):
         im, lab = sess.run([image, label])
         print(lab)
         plt.imshow(im)

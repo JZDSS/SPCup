@@ -11,7 +11,7 @@ flags = tf.app.flags
 flags.DEFINE_string('data_dir', '../data', 'Data direction')
 flags.DEFINE_string('out_dir', '../patches', 'Output direction')
 flags.DEFINE_integer('patch_size', 64, '')
-flags.DEFINE_integer('max_patches', 1000, 'number of patches that one image can generate at most')
+flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
 FLAGS = flags.FLAGS
 
 def get_patches(img, max_patches):
@@ -31,7 +31,8 @@ def _bytes_feature(value):
 def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
         tf.gfile.MakeDirs(FLAGS.out_dir)
-
+    tf.gfile.MakeDirs('./tmp/train')
+    tf.gfile.MakeDirs('./tmp/valid')
     classes = os.listdir(FLAGS.data_dir)
 
     train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
@@ -41,71 +42,57 @@ def main(_):
     valid_writer = tf.python_io.TFRecordWriter(valid_name)
 
     spc_classes = open('spc_classes.txt', 'w')
-    full_paths = []
-    labels = []
+    n = 0
     for label, class_name in enumerate(classes):
         spc_classes.write(('%d ' % label) + class_name + '\n')
+
         img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
         for img_name in img_names:
             full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-            labels.append(label)
-            full_paths.append(full_path)
+            print 'processing ' + full_path
+            img = plt.imread(full_path)
+            dice = np.random.randint(0, 5, 1)
+            # writer = train_writer if dice != 0 else valid_writer
+            set = 'train' if dice != 0 else 'valid'
+            for patch in get_patches(img, FLAGS.max_patches):
+                n = n + 1
+                np.save(os.path.join('./tmp', set, str(n)) + '.npy', {'label': label, 'patch': patch})
 
-    iterators = []
-    labels1 = []
-    train = []
-    indices = range(len(full_paths))
-    shuffle(indices)
-    for i in indices:
-        img = plt.imread(full_paths[i])
-        iterators.append(get_patches(img, FLAGS.max_patches))
-        labels1.append(labels[i])
-        dice = np.random.randint(0, 5, 1)
-        if 0 == dice:
-            train.append(False)
-        else:
-            train.append(True)
+    train = os.listdir('./tmp/train')
+    valid = os.listdir('./tmp/valid')
+    idx = range(len(train))
+    shuffle(idx)
+    for i in idx:
+        dic = np.load(os.path.join('./tmp/train', train[i])).item()
+        patch = dic['patch']
+        label = dic['label']
 
-    while len(iterators) > 0:
-        idx = np.random.randint(0, len(iterators), 1)[0]
-        element = iterators[idx]
-        label = labels1[idx]
-        iftrain = train[idx]
-        try:
-            patch = element.next()
-            writer = train_writer if iftrain != 0 else valid_writer
-            patch_raw = patch.tostring()
-            label_raw = np.array([label]).astype(np.int32).tostring()
-            example = tf.train.Example(features=tf.train.Features(feature={
-                'patch_raw': _bytes_feature(patch_raw),
-                'label': _bytes_feature(label_raw)}))
-            writer.write(example.SerializeToString())
-        except StopIteration:
-            iterators = iterators[:idx] + iterators[idx + 1:]
-            labels1 = labels1[:idx] + labels1[idx + 1:]
+        patch_raw = patch.tostring()
+        label_raw = np.array([label]).astype(np.int32).tostring()
+        example = tf.train.Example(features=tf.train.Features(feature={
+            'patch_raw': _bytes_feature(patch_raw),
+            'label': _bytes_feature(label_raw)}))
+        train_writer.write(example.SerializeToString())
 
+    idx = range(len(valid))
+    shuffle(idx)
+    for i in idx:
+        dic = np.load(os.path.join('./tmp/valid', valid[i])).item()
+        patch = dic['patch']
+        label = dic['label']
 
-    # for label, class_name in enumerate(classes):
-    #     spc_classes.write(('%d ' % label) + class_name + '\n')
-    #
-    #     img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
-    #     for img_name in img_names:
-    #         full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-    #         print 'processing ' + full_path
-    #         img = plt.imread(full_path)
-    #         dice = np.random.randint(0, 5, 1)
-    #         writer = train_writer if dice != 0 else valid_writer
-    #         for patch in get_patches(img, FLAGS.max_patches):
-    #             patch_raw = patch.tostring()
-    #             label_raw = np.array([label]).astype(np.int32).tostring()
-    #             example = tf.train.Example(features=tf.train.Features(feature={
-    #                 'patch_raw': _bytes_feature(patch_raw),
-    #                 'label': _bytes_feature(label_raw)}))
-    #             writer.write(example.SerializeToString())
+        patch_raw = patch.tostring()
+        label_raw = np.array([label]).astype(np.int32).tostring()
+        example = tf.train.Example(features=tf.train.Features(feature={
+            'patch_raw': _bytes_feature(patch_raw),
+            'label': _bytes_feature(label_raw)}))
+        valid_writer.write(example.SerializeToString())
 
     train_writer.close()
     valid_writer.close()
     spc_classes.close()
+
+    tf.gfile.DeleteRecursively('./tmp')
 
 
 if __name__ == "__main__":
