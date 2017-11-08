@@ -119,7 +119,7 @@ def main(_):
                 ls, acc, summary = sess.run([loss, accuracy, merged])
                 writer.add_summary(summary, i)
                 print acc
-                print loss
+                print ls
             sess.run(train_step)
 
 

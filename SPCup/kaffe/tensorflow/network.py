@@ -198,7 +198,7 @@ class Network(object):
             else:
                 feed_in, dim = (input, input_shape[-1].value)
 
-            weights = tf.get_variable('weights', [dim, num_out], initializer=tf.truncated_normal_initializer(stddev=0.001),
+            weights = tf.get_variable('weights', [dim, num_out], initializer=tf.truncated_normal_initializer(stddev=0.2236),
                                       trainable=self.trainable, regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay))
             # weights = self.make_var('weights', shape=[dim, num_out])
             biases = tf.get_variable('biases', [num_out], initializer=tf.zeros_initializer(),
