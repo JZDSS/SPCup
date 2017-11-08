@@ -131,7 +131,8 @@ def main(_):
 
     merged = tf.summary.merge_all()
 
-
+    with tf.name_scope("saver"):
+        saver = tf.train.Saver(name="saver")
 
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
@@ -187,6 +188,7 @@ def main(_):
                 acc, summary = sess.run([accuracy, merged], feed_dict=feed_dict(True))
                 # train_writer.add_summary(summary, i)
                 print(acc)
+                saver.save(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
 
         coord.request_stop()
         coord.join(threads)
