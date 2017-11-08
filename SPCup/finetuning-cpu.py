@@ -116,9 +116,10 @@ def main(_):
             # if i % 1000 == 0 and i != 1:
             #     time.sleep(60)
             if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                acc, summary = sess.run([accuracy, merged])
+                ls, acc, summary = sess.run([loss, accuracy, merged])
                 writer.add_summary(summary, i)
                 print acc
+                print loss
             sess.run(train_step)
 
 
