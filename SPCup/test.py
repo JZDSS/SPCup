@@ -48,9 +48,9 @@ def input_pipeline(filenames, batch_size, num_epochs=None):
 flags = tf.app.flags
 
 flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
-flags.DEFINE_string('data_dir', './test/data', 'data direction')
-flags.DEFINE_string('log_dir', './test/logs', 'log direction')
-flags.DEFINE_string('ckpt_dir', './test/ckpt', 'check point direction')
+flags.DEFINE_string('data_dir', '../patches', 'data direction')
+flags.DEFINE_string('log_dir', './logs', 'log direction')
+flags.DEFINE_string('ckpt_dir', './ckpt', 'check point direction')
 flags.DEFINE_float('weight_decay', 0.0001, 'weight decay')
 flags.DEFINE_integer('decay_steps', 100, 'decay steps')
 flags.DEFINE_float('decay_rate', 0.95, 'decay rate')
@@ -65,9 +65,9 @@ FLAGS = flags.FLAGS
 
 def main(_):
 
-    if not tf.gfile.Exists(FLAGS.data_dir):
-        print('data direction is not exist!')
-        return -1
+    # if not tf.gfile.Exists(FLAGS.data_dir):
+    #     print('data direction is not exist!')
+    #     return -1
 
     # if tf.gfile.Exists(FLAGS.log_dir):
     #     tf.gfile.DeleteRecursively(FLAGS.log_dir)
