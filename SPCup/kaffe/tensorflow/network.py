@@ -199,10 +199,10 @@ class Network(object):
                 feed_in, dim = (input, input_shape[-1].value)
 
             weights = tf.get_variable('weights', [dim, num_out], initializer=tf.truncated_normal_initializer(stddev=0.001),
-                                      trainable=self.trainable)
+                                      trainable=self.trainable, regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay))
             # weights = self.make_var('weights', shape=[dim, num_out])
             biases = tf.get_variable('biases', [num_out], initializer=tf.zeros_initializer(),
-                                     trainable=self.trainable)
+                                     trainable=self.trainable, regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay))
             # biases = self.make_var('biases', [num_out])
             op = tf.nn.relu_layer if relu else tf.nn.xw_plus_b
             fc = op(feed_in, weights, biases, name=scope.name)
