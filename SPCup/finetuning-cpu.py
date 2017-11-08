@@ -66,62 +66,62 @@ def main(_):
         tf.gfile.DeleteRecursively(FLAGS.log_dir)
         tf.gfile.MakeDirs(FLAGS.log_dir)
     train_example_batch, train_label_batch = input_pipeline(['../patches/spc_train.tfrecords'], FLAGS.batch_size)
+    with tf.device('/gpu:7'):
+        tf.summary.image('show', train_example_batch, 1)
+        # with tf.name_scope('input'):
+        #     x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
+        #     tf.summary.image('show', x, 1)
+        #
+        # with tf.name_scope('label'):
+        #     y_ = tf.placeholder(tf.int32, [None, 1], 'y')
 
-    tf.summary.image('show', train_example_batch, 1)
-    # with tf.name_scope('input'):
-    #     x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
-    #     tf.summary.image('show', x, 1)
-    #
-    # with tf.name_scope('label'):
-    #     y_ = tf.placeholder(tf.int32, [None, 1], 'y')
+        net = res50({'data': train_example_batch})
 
-    net = res50({'data': train_example_batch})
+        fc10 = net.layers['fc10']
+        with tf.name_scope('scores'):
+            losses.sparse_softmax_cross_entropy(fc10, train_label_batch, scope='cross_entropy')
+            total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
+            tf.summary.scalar('loss', total_loss)
+            with tf.name_scope('accuracy'):
+                correct_prediction = tf.equal(tf.cast(tf.reshape(tf.argmax(fc10, 1), [-1, 1]), tf.int32),
+                                              train_label_batch)
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            tf.summary.scalar('accuracy', accuracy)
 
-    fc10 = net.layers['fc10']
-    with tf.name_scope('scores'):
-        losses.sparse_softmax_cross_entropy(fc10, train_label_batch, scope='cross_entropy')
-        total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
-        tf.summary.scalar('loss', total_loss)
-        with tf.name_scope('accuracy'):
-            correct_prediction = tf.equal(tf.cast(tf.reshape(tf.argmax(fc10, 1), [-1, 1]), tf.int32),
-                                          train_label_batch)
-            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        tf.summary.scalar('accuracy', accuracy)
+        with tf.name_scope('train'):
+            global_step = tf.Variable(FLAGS.start_step, name="global_step")
+            learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
+                global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
+            # learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
+            train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
+                total_loss, global_step=global_step)
+        tf.summary.scalar('lr', learning_rate)
 
-    with tf.name_scope('train'):
-        global_step = tf.Variable(FLAGS.start_step, name="global_step")
-        learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
-            global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
-        # learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
-        train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
-            total_loss, global_step=global_step)
-    tf.summary.scalar('lr', learning_rate)
+        merged = tf.summary.merge_all()
 
-    merged = tf.summary.merge_all()
+        with tf.Session() as sess:
+            writer = tf.summary.FileWriter(FLAGS.log_dir, sess.graph)
+            writer.flush()
+            tf.global_variables_initializer().run()
+            net.load('../tfmodels/ResNet50.npy', sess, ignore_missing=True)
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(coord=coord)
 
-    with tf.Session() as sess:
-        writer = tf.summary.FileWriter(FLAGS.log_dir, sess.graph)
-        writer.flush()
-        tf.global_variables_initializer().run()
-        net.load('../tfmodels/ResNet50.npy', sess, ignore_missing=True)
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
+            # print sess.run(fc10)
 
-        # print sess.run(fc10)
-
-        for i in xrange(FLAGS.start_step, FLAGS.max_steps + 1):
-            # if i % 1000 == 0 and i != 1:
-            #     time.sleep(60)
-            if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                acc, summary = sess.run([accuracy, merged])
-                writer.add_summary(summary, i)
-                print acc
-            sess.run(train_step)
+            for i in xrange(FLAGS.start_step, FLAGS.max_steps + 1):
+                # if i % 1000 == 0 and i != 1:
+                #     time.sleep(60)
+                if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
+                    acc, summary = sess.run([accuracy, merged])
+                    writer.add_summary(summary, i)
+                    print acc
+                sess.run(train_step)
 
 
-        coord.request_stop()
-        coord.join(threads)
-        writer.close()
+            coord.request_stop()
+            coord.join(threads)
+            writer.close()
 
 
 
