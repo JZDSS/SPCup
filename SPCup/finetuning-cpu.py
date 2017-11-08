@@ -99,29 +99,29 @@ def main(_):
 
         merged = tf.summary.merge_all()
 
-        with tf.Session() as sess:
-            writer = tf.summary.FileWriter(FLAGS.log_dir, sess.graph)
-            writer.flush()
-            tf.global_variables_initializer().run()
-            net.load('../tfmodels/ResNet50.npy', sess, ignore_missing=True)
-            coord = tf.train.Coordinator()
-            threads = tf.train.start_queue_runners(coord=coord)
+    with tf.Session() as sess:
+        writer = tf.summary.FileWriter(FLAGS.log_dir, sess.graph)
+        writer.flush()
+        tf.global_variables_initializer().run()
+        net.load('../tfmodels/ResNet50.npy', sess, ignore_missing=True)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
 
-            # print sess.run(fc10)
+        # print sess.run(fc10)
 
-            for i in xrange(FLAGS.start_step, FLAGS.max_steps + 1):
-                # if i % 1000 == 0 and i != 1:
-                #     time.sleep(60)
-                if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                    acc, summary = sess.run([accuracy, merged])
-                    writer.add_summary(summary, i)
-                    print acc
-                sess.run(train_step)
+        for i in xrange(FLAGS.start_step, FLAGS.max_steps + 1):
+            # if i % 1000 == 0 and i != 1:
+            #     time.sleep(60)
+            if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
+                acc, summary = sess.run([accuracy, merged])
+                writer.add_summary(summary, i)
+                print acc
+            sess.run(train_step)
 
 
-            coord.request_stop()
-            coord.join(threads)
-            writer.close()
+        coord.request_stop()
+        coord.join(threads)
+        writer.close()
 
 
 
