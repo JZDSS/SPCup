@@ -17,9 +17,9 @@ flags.DEFINE_integer('batch_size', 100, 'Batch size')
 flags.DEFINE_integer('num_steps', 100000, 'Number of steps to run')
 flags.DEFINE_integer('decay_steps', 100, '')
 flags.DEFINE_float('decay_rate', 0.98, '')
-flags.DEFINE_float('momentum', 0.95, '')
+flags.DEFINE_float('momentum', 0.9, '')
 flags.DEFINE_integer('start_step', 0, '')
-flags.DEFINE_integer('max_steps', 10000, '')
+flags.DEFINE_integer('max_steps', 64000, '')
 
 FLAGS = flags.FLAGS
 
@@ -92,9 +92,9 @@ def main(_):
 
     with tf.name_scope('train'):
         global_step = tf.Variable(FLAGS.start_step, name="global_step")
-        learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
-            global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
-        # learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
+        # learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
+        #     global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
+        learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
         with tf.device('/gpu:7'):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
                 total_loss, global_step=global_step)
