@@ -88,16 +88,17 @@ def main(_):
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
             tf.summary.scalar('accuracy', accuracy)
 
-        with tf.name_scope('train'):
-            global_step = tf.Variable(FLAGS.start_step, name="global_step")
-            learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
-                global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
-            # learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
+    with tf.name_scope('train'):
+        global_step = tf.Variable(FLAGS.start_step, name="global_step")
+        learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
+            global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
+        # learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
+        with tf.device('/gpu:7'):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
                 total_loss, global_step=global_step)
-        tf.summary.scalar('lr', learning_rate)
+    tf.summary.scalar('lr', learning_rate)
 
-        merged = tf.summary.merge_all()
+    merged = tf.summary.merge_all()
 
     with tf.Session() as sess:
         writer = tf.summary.FileWriter(FLAGS.log_dir, sess.graph)
