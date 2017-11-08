@@ -41,9 +41,9 @@ class Network(object):
         # If true, the resulting variables are set as trainable
         self.trainable = trainable
         # Switch variable for dropout
-        self.use_dropout = tf.placeholder_with_default(tf.constant(1.0),
-                                                       shape=[],
-                                                       name='use_dropout')
+        # self.use_dropout = tf.placeholder_with_default(tf.constant(1.0),
+        #                                                shape=[],
+        #                                                name='use_dropout')
         self.weight_decay = 0.0005
         self.setup()
 
