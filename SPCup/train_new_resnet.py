@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pickle
 import time
+from random import shuffle
 
 import resnet as res
 
@@ -72,6 +73,8 @@ def main(_):
 
     train_list = os.listdir('./tmp/train')
     valid_list = os.listdir('./tmp/valid')
+    shuffle(train_list)
+    shuffle(valid_list)
 
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
