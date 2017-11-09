@@ -82,7 +82,7 @@ def main(_):
 
     with tf.variable_scope('net'):
         # y, keep_prob = build_net(x)
-        with tf.device('/gpu:7'):
+        with tf.device('/gpu:4'):
             y, _ = res.build_net(x, 3, FLAGS.num_classes)
 
     with tf.name_scope('scores'):
@@ -116,7 +116,7 @@ def main(_):
         # learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
         #     global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
         learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
-        with tf.device('/gpu:7'):
+        with tf.device('/gpu:4'):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
                 total_loss, global_step=global_step)
     tf.summary.scalar('lr', learning_rate)
