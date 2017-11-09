@@ -55,9 +55,8 @@ def main(_):
             dice = np.random.randint(0, 5, 1)
             # writer = train_writer if dice != 0 else valid_writer
             set = 'train' if dice != 0 else 'valid'
-            for patch in get_patches(img, FLAGS.max_patches):
-                n = n + 1
-                np.save(os.path.join('./tmp', set, str(n)) + '.npy', {'label': label, 'patch': patch})
+            for n, patch in enumerate(get_patches(img, FLAGS.max_patches)):
+                np.save(os.path.join('./tmp', set, class_name + '_' + img_name + '_' + str(n) + '.npy'), {'label': label, 'patch': patch})
 
     # train = os.listdir('./tmp/train')
     # valid = os.listdir('./tmp/valid')

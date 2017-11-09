@@ -14,7 +14,7 @@ flags = tf.app.flags
 flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 flags.DEFINE_string('data_dir', '../data', 'data direction')
 flags.DEFINE_string('log_dir', './logs', 'log direction')
-flags.DEFINE_string('ckpt_dir', './ckpt', 'check point direction')
+flags.DEFINE_string('ckpt_dir', '.res20/ckpt', 'check point direction')
 flags.DEFINE_float('weight_decay', 0.0001, 'weight decay')
 flags.DEFINE_integer('decay_steps', 100, 'decay steps')
 flags.DEFINE_float('decay_rate', 0.95, 'decay rate')
@@ -133,6 +133,7 @@ def main(_):
                         i = i + 1
                     data = (data - 128.) / 128.
                     prediction = list(sess.run(pred, feed_dict={x: data}))
+                    print prediction
                     count = np.ndarray(shape=(10, 1), dtype=np.int32)
                     for i in xrange(FLAGS.num_classes):
                         count[i] = prediction.count(i)
