@@ -83,7 +83,7 @@ def main(_):
     with tf.variable_scope('net'):
         # y, keep_prob = build_net(x)
         with tf.device('/gpu:7'):
-            y, keep_prob = res.build_net(x, 3, FLAGS.num_classes)
+            y, _ = res.build_net(x, 3, FLAGS.num_classes)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
@@ -161,11 +161,9 @@ def main(_):
 
             if train:
                 xs, ys = get_batch('./tmp/train', train_list)
-                k = kk
             else:
                 xs, ys = get_batch('./tmp/valid', valid_list)
-                k = 1.0
-            return {x: xs, y_: ys, keep_prob: k}
+            return {x: xs, y_: ys}
 
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
             sess.run(train_step, feed_dict=feed_dict(True))

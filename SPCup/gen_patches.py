@@ -36,11 +36,11 @@ def main(_):
     tf.gfile.MakeDirs('./tmp/valid')
     classes = os.listdir(FLAGS.data_dir)
 
-    train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
-    valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
+    # train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
+    # valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
 
-    train_writer = tf.python_io.TFRecordWriter(train_name)
-    valid_writer = tf.python_io.TFRecordWriter(valid_name)
+    # train_writer = tf.python_io.TFRecordWriter(train_name)
+    # valid_writer = tf.python_io.TFRecordWriter(valid_name)
 
     spc_classes = open('spc_classes.txt', 'w')
     n = 0
@@ -59,38 +59,38 @@ def main(_):
                 n = n + 1
                 np.save(os.path.join('./tmp', set, str(n)) + '.npy', {'label': label, 'patch': patch})
 
-    train = os.listdir('./tmp/train')
-    valid = os.listdir('./tmp/valid')
-    idx = range(len(train))
-    shuffle(idx)
-    for i in idx:
-        dic = np.load(os.path.join('./tmp/train', train[i])).item()
-        patch = dic['patch']
-        label = dic['label']
-
-        patch_raw = patch.tostring()
-        label_raw = np.array([label]).astype(np.int32).tostring()
-        example = tf.train.Example(features=tf.train.Features(feature={
-            'patch_raw': _bytes_feature(patch_raw),
-            'label': _bytes_feature(label_raw)}))
-        train_writer.write(example.SerializeToString())
-
-    idx = range(len(valid))
-    shuffle(idx)
-    for i in idx:
-        dic = np.load(os.path.join('./tmp/valid', valid[i])).item()
-        patch = dic['patch']
-        label = dic['label']
-
-        patch_raw = patch.tostring()
-        label_raw = np.array([label]).astype(np.int32).tostring()
-        example = tf.train.Example(features=tf.train.Features(feature={
-            'patch_raw': _bytes_feature(patch_raw),
-            'label': _bytes_feature(label_raw)}))
-        valid_writer.write(example.SerializeToString())
-
-    train_writer.close()
-    valid_writer.close()
+    # train = os.listdir('./tmp/train')
+    # valid = os.listdir('./tmp/valid')
+    # idx = range(len(train))
+    # shuffle(idx)
+    # for i in idx:
+    #     dic = np.load(os.path.join('./tmp/train', train[i])).item()
+    #     patch = dic['patch']
+    #     label = dic['label']
+    #
+    #     patch_raw = patch.tostring()
+    #     label_raw = np.array([label]).astype(np.int32).tostring()
+    #     example = tf.train.Example(features=tf.train.Features(feature={
+    #         'patch_raw': _bytes_feature(patch_raw),
+    #         'label': _bytes_feature(label_raw)}))
+    #     train_writer.write(example.SerializeToString())
+    #
+    # idx = range(len(valid))
+    # shuffle(idx)
+    # for i in idx:
+    #     dic = np.load(os.path.join('./tmp/valid', valid[i])).item()
+    #     patch = dic['patch']
+    #     label = dic['label']
+    #
+    #     patch_raw = patch.tostring()
+    #     label_raw = np.array([label]).astype(np.int32).tostring()
+    #     example = tf.train.Example(features=tf.train.Features(feature={
+    #         'patch_raw': _bytes_feature(patch_raw),
+    #         'label': _bytes_feature(label_raw)}))
+    #     valid_writer.write(example.SerializeToString())
+    #
+    # train_writer.close()
+    # valid_writer.close()
     spc_classes.close()
     if not FLAGS.keep:
         tf.gfile.DeleteRecursively('./tmp')
