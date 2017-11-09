@@ -59,6 +59,7 @@ tf.app.flags.DEFINE_integer('batch_size', 128, 'batch size')
 tf.app.flags.DEFINE_float('dropout', 0.5, 'keep probability')
 tf.app.flags.DEFINE_integer('max_steps', 64000, 'max steps')
 tf.app.flags.DEFINE_integer('start_step', 1, 'start steps')
+tf.app.flags.DEFINE_bool('verbose', False, '')
 
 FLAGS = flags.FLAGS
 
@@ -166,15 +167,24 @@ def main(_):
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
             sess.run(train_step, feed_dict=feed_dict(True))
             if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(False))
-                # test_writer.add_summary(summary, i)
-                print i
-                print acc
-                print pr
-                pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(True))
-                # train_writer.add_summary(summary, i)
-                print acc
-                print pr
+                if FLAGS.verbose:
+                    pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(False))
+                    # test_writer.add_summary(summary, i)
+                    print i
+                    print acc
+                    print pr
+                    pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(True))
+                    # train_writer.add_summary(summary, i)
+                    print acc
+                    print pr
+                else:
+                    acc, summary = sess.run([accuracy, merged], feed_dict=feed_dict(False))
+                    # test_writer.add_summary(summary, i)
+                    print i
+                    print acc
+                    acc, summary = sess.run([accuracy, merged], feed_dict=feed_dict(True))
+                    # train_writer.add_summary(summary, i)
+                    print acc
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
 
         coord.request_stop()
