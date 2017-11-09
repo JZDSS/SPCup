@@ -9,41 +9,41 @@ import time
 import resnet as res
 
 
-def read_from_tfrecord(tfrecord_file_queue):
-    # tfrecord_file_queue = tf.train.string_input_producer(filenames, name='queue')
-    reader = tf.TFRecordReader()
-    _, tfrecord_serialized = reader.read(tfrecord_file_queue)
-    tfrecord_features = tf.parse_single_example(tfrecord_serialized,
-        features={
-            'label': tf.FixedLenFeature([], tf.string),
-            'patch_raw': tf.FixedLenFeature([], tf.string)
-        }, name='features')
-    image = tf.decode_raw(tfrecord_features['patch_raw'], tf.uint8)
-    ground_truth = tf.decode_raw(tfrecord_features['label'], tf.int32)
-
-    image = tf.cast(tf.reshape(image, [64, 64, 3]), tf.float32)
-    image = tf.image.per_image_standardization(image)
-    ground_truth = tf.reshape(ground_truth, [1])
-    return image, ground_truth
-
-def input_pipeline(filenames, batch_size, num_epochs=None):
-    filename_queue = tf.train.string_input_producer(
-        filenames, num_epochs=num_epochs, shuffle=True)
-    example, label = read_from_tfrecord(filename_queue)
-    # min_after_dequeue defines how big a buffer we will randomly sample
-    #   from -- bigger means better shuffling but slower start up and more
-    #   memory used.
-    # capacity must be larger than min_after_dequeue and the amount larger
-    #   determines the maximum we will prefetch.  Recommendation:
-    #   min_after_dequeue + (num_threads + a small safety margin) * batch_size
-    min_after_dequeue = 1000
-    capacity = min_after_dequeue + 3 * batch_size
-    example_batch, label_batch = tf.train.shuffle_batch(
-        [example, label], batch_size=batch_size, capacity=capacity,
-        min_after_dequeue=min_after_dequeue)
-    return example_batch, label_batch
-
-
+# def read_from_tfrecord(tfrecord_file_queue):
+#     # tfrecord_file_queue = tf.train.string_input_producer(filenames, name='queue')
+#     reader = tf.TFRecordReader()
+#     _, tfrecord_serialized = reader.read(tfrecord_file_queue)
+#     tfrecord_features = tf.parse_single_example(tfrecord_serialized,
+#         features={
+#             'label': tf.FixedLenFeature([], tf.string),
+#             'patch_raw': tf.FixedLenFeature([], tf.string)
+#         }, name='features')
+#     image = tf.decode_raw(tfrecord_features['patch_raw'], tf.uint8)
+#     ground_truth = tf.decode_raw(tfrecord_features['label'], tf.int32)
+#
+#     image = tf.cast(tf.reshape(image, [64, 64, 3]), tf.float32)
+#     # image = tf.image.per_image_standardization(image)
+#     ground_truth = tf.reshape(ground_truth, [1])
+#     return image, ground_truth
+#
+# def input_pipeline(filenames, batch_size, num_epochs=None):
+#     filename_queue = tf.train.string_input_producer(
+#         filenames, num_epochs=num_epochs, shuffle=True)
+#     example, label = read_from_tfrecord(filename_queue)
+#     # min_after_dequeue defines how big a buffer we will randomly sample
+#     #   from -- bigger means better shuffling but slower start up and more
+#     #   memory used.
+#     # capacity must be larger than min_after_dequeue and the amount larger
+#     #   determines the maximum we will prefetch.  Recommendation:
+#     #   min_after_dequeue + (num_threads + a small safety margin) * batch_size
+#     min_after_dequeue = 1000
+#     capacity = min_after_dequeue + 3 * batch_size
+#     example_batch, label_batch = tf.train.shuffle_batch(
+#         [example, label], batch_size=batch_size, capacity=capacity,
+#         min_after_dequeue=min_after_dequeue)
+#     return example_batch, label_batch
+#
+#
 
 flags = tf.app.flags
 
@@ -55,19 +55,23 @@ flags.DEFINE_float('weight_decay', 0.0001, 'weight decay')
 flags.DEFINE_integer('decay_steps', 100, 'decay steps')
 flags.DEFINE_float('decay_rate', 0.95, 'decay rate')
 flags.DEFINE_float('momentum', 0.9, 'momentum')
-tf.app.flags.DEFINE_integer('batch_size', 128, 'batch size')
-tf.app.flags.DEFINE_float('dropout', 0.5, 'keep probability')
-tf.app.flags.DEFINE_integer('max_steps', 64000, 'max steps')
-tf.app.flags.DEFINE_integer('start_step', 1, 'start steps')
-tf.app.flags.DEFINE_bool('verbose', False, '')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_float('dropout', 0.5, 'keep probability')
+flags.DEFINE_integer('max_steps', 64000, 'max steps')
+flags.DEFINE_integer('start_step', 1, 'start steps')
+flags.DEFINE_bool('verbose', False, '')
+flags.DEFINE_integer('num_classes', 10, '')
 
 FLAGS = flags.FLAGS
 
 
 def main(_):
 
-    train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
-    valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
+    # train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
+    # valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
+
+    train_list = os.listdir('./tmp/train')
+    valid_list = os.listdir('./tmp/valid')
 
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
@@ -78,7 +82,7 @@ def main(_):
 
     with tf.variable_scope('net'):
         # y, keep_prob = build_net(x)
-        y, keep_prob = res.build_net(x, 3)
+        y, keep_prob = res.build_net(x, 3, FLAGS.num_classes)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
@@ -138,29 +142,26 @@ def main(_):
         def feed_dict(train, kk=FLAGS.dropout):
             """Make a TensorFlow feed_dict: maps data onto Tensor placeholders."""
 
-            def get_batch(data, labels):
+            def get_batch(root, mlist):
                 # id = np.random.randint(low=0, high=labels.shape[0], size=FLAGS.batch_size, dtype=np.int32)
                 # return data[id, ...], labels[id]
-                d, l = sess.run([data, labels])
-                d = d.astype(np.float32)
-                l = l.astype(np.int64)
-                return d, l
+                data = np.ndarray(shape=(FLAGS.batch_size, 64, 64, 3), dtype=np.uint8)
+                labels = np.ndarray(shape=(FLAGS.batch_size, 1), dtype=np.int64)
+                for i in xrange(FLAGS.batch_size):
+                    dic = np.load(os.path.join(root, mlist[i])).item()
+                    data[i, ...] = dic['patch']
+                    labels[i, ...] = dic['label']
+                data = (data - 128.)/128.
+                labels.astype(np.int64)
+
+                return data, labels
 
 
             if train:
-                xs, ys = get_batch(train_example_batch, train_label_batch)
-                # xs = tmp
-                # tmp = np.pad(tmp, 4, 'constant')
-                # for ii in range(FLAGS.batch_size):
-                #     xx = np.random.randint(0, 9)
-                #     yy = np.random.randint(0, 9)
-                #     xs[ii,:] = np.fliplr(tmp[ii + 4,xx:xx + 32, yy:yy + 32,4:7]) if np.random.randint(0, 2) == 1 \
-                #         else tmp[ii + 4,xx:xx + 32, yy:yy + 32,4:7]
+                xs, ys = get_batch('./tmp/train', train_list)
                 k = kk
             else:
-                xs, ys = get_batch(valid_example_batch, valid_label_batch)
-                # xs = valid_data
-                # ys = valid_labels
+                xs, ys = get_batch('./tmp/valid', valid_list)
                 k = 1.0
             return {x: xs, y_: ys, keep_prob: k}
 

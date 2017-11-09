@@ -25,7 +25,7 @@ def block(inputs, num_outputs, weight_decay, scope, down_sample = False):
     return res
 
 
-def build_net(x, n):
+def build_net(x, n, num_classes):
     with tf.variable_scope('pre'):
         pre = layers.conv2d(inputs=x, num_outputs=16,  kernel_size = [3, 3], scope='conv',
                             weights_initializer=tf.truncated_normal_initializer(
@@ -54,11 +54,11 @@ def build_net(x, n):
     #                            biases_regularizer=layers.l2_regularizer(0.0001),
     #                            scope='fc1')
     h = layers.avg_pool2d(h, [16, 16], scope='global_pool')
-    h = layers.conv2d(inputs=h, num_outputs=10, kernel_size=[1, 1], scope='fc1', padding='VALID',
+    h = layers.conv2d(inputs=h, num_outputs=num_classes, kernel_size=[1, 1], scope='fc1', padding='VALID',
                   weights_initializer=tf.truncated_normal_initializer(
                       stddev=math.sqrt(2.0 / 64 / 10)),
                   weights_regularizer=layers.l2_regularizer(0.0001),
                   biases_regularizer=layers.l2_regularizer(0.0001),
                   normalizer_fn=layers.batch_norm)
     keep_prob = tf.placeholder(tf.float32, name="keep_prob")
-    return tf.reshape(h, [-1, 10]), keep_prob
+    return tf.reshape(h, [-1, num_classes]), keep_prob
