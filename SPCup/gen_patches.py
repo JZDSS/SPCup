@@ -12,6 +12,7 @@ flags.DEFINE_string('data_dir', '../data', 'Data direction')
 flags.DEFINE_string('out_dir', '../patches', 'Output direction')
 flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
+flags.DEFINE_bool('keep', True, '')
 FLAGS = flags.FLAGS
 
 def get_patches(img, max_patches):
@@ -91,8 +92,8 @@ def main(_):
     train_writer.close()
     valid_writer.close()
     spc_classes.close()
-
-    tf.gfile.DeleteRecursively('./tmp')
+    if not FLAGS.keep:
+        tf.gfile.DeleteRecursively('./tmp')
 
 
 if __name__ == "__main__":
