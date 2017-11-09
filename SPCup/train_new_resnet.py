@@ -81,8 +81,8 @@ def main(_):
     # train_data = (train_data - 128) / 128.0
     # valid_data = (valid_data - 128) / 128.0
 
-    train_example_batch, train_label_batch = input_pipeline(['../patches/spc_train.tfrecords'], FLAGS.batch_size)
-    valid_example_batch, valid_label_batch = input_pipeline(['../patches/spc_valid.tfrecords'], FLAGS.batch_size)
+    train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
+    valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
 
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
