@@ -64,8 +64,11 @@ def main(_):
                     start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
                     start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
                     patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
-                    patch = (patch - 128.)/128.
                     patch = patch.reshape((1, 64, 64, 3))
+                    stddev = np.std(patch, ddof=1)
+                    adjusted_stddev = stddev if stddev > 1.0 / FLAGS.patch_size else 1.0 / FLAGS.patch_size
+                    patch = (patch - np.mean(patch)) / adjusted_stddev
+
                     fc, result = sess.run([y, pred] ,feed_dict={x: patch})
                     print img_name + ' captured by ' + class_name + ', patch ' + str(i) + ' prediction: ' + \
                         meta[result[0]]

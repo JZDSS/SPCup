@@ -65,22 +65,6 @@ FLAGS = flags.FLAGS
 
 def main(_):
 
-    # if not tf.gfile.Exists(FLAGS.data_dir):
-    #     print('data direction is not exist!')
-    #     return -1
-
-    # if tf.gfile.Exists(FLAGS.log_dir):
-    #     tf.gfile.DeleteRecursively(FLAGS.log_dir)
-    # tf.gfile.MakeDirs(FLAGS.log_dir)
-
-    # train_data, train_labels = load_train_data()
-    # # name = 'cifar10_train'
-    #
-    # valid_data, valid_labels = load_valid_data()
-    # # name = 'cifar10_valid'
-    # train_data = (train_data - 128) / 128.0
-    # valid_data = (valid_data - 128) / 128.0
-
     train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
     valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
 
@@ -109,7 +93,8 @@ def main(_):
         # with tf.name_scope('accuracy'):
         # with tf.name_scope('correct_prediction'):
         with tf.name_scope('accuracy'):
-            correct_prediction = tf.equal(tf.reshape(tf.argmax(y, 1), [-1, 1]), y_)
+            pred = tf.argmax(y, 1)
+            correct_prediction = tf.equal(tf.reshape(pred, [-1, 1]), y_)
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
         # accuracy = tf.metrics.accuracy(labels=y_, predictions=tf.argmax(y, 1), name='accuracy')
@@ -181,13 +166,15 @@ def main(_):
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
             sess.run(train_step, feed_dict=feed_dict(True))
             if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                acc, summary = sess.run([accuracy, merged], feed_dict=feed_dict(False))
+                pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(False))
                 # test_writer.add_summary(summary, i)
-                print(i)
-                print(acc)
-                acc, summary = sess.run([accuracy, merged], feed_dict=feed_dict(True))
+                print i
+                print acc
+                print pr
+                pr, acc, summary = sess.run([pred, accuracy, merged], feed_dict=feed_dict(True))
                 # train_writer.add_summary(summary, i)
-                print(acc)
+                print acc
+                print pr
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
 
         coord.request_stop()
