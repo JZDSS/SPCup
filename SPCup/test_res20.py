@@ -50,53 +50,30 @@ def main(_):
     with tf.Session() as sess:
         if tf.gfile.Exists(os.path.join(FLAGS.ckpt_dir, 'checkpoint')):
             saver.restore(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
+        else:
+            raise
 
-        data = np.ndarray(shape=(FLAGS.batch_size, 64, 64, 3), dtype=np.uint8)
-        labels = np.ndarray(shape=(FLAGS.batch_size, 1), dtype=np.int64)
-        t = time.time()
-        for i in xrange(99):
-            dic = np.load('tmp/train/%d.npy' % (i+1)).item()
-            data[i, ...] = dic['patch']
-            labels[i, ...] = dic['label']
+        classes = os.listdir(FLAGS.data_dir)
 
-        print time.time() - t
+        for label, class_name in enumerate(classes):
+            img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
+            for img_name in img_names:
+                full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
+                img = plt.imread(full_path)
+                h = img.shape[0]
+                w = img.shape[1]
+                for i in xrange(10):
+                    start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
+                    start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
+                    patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
+                    patch = patch.reshape((1, 64, 64, 3))
+                    stddev = np.std(patch, ddof=1)
+                    adjusted_stddev = stddev if stddev > 1.0 / FLAGS.patch_size else 1.0 / FLAGS.patch_size
+                    patch = (patch - np.mean(patch)) / adjusted_stddev
 
-        # for i in xrange(100):
-        #     plt.imshow(patches[i, :])
-        #     plt.show()
-        # patches = (patches - 128.)/128.
-        # print sess.run(pred, feed_dict={x: patches})
-        # valid = os.listdir('./tmp/valid')
-        # for file in valid:
-        #     full_path = os.path.join('./tmp/valid', file)
-        #     dic = np.load(full_path).item()
-        #     patch = (dic['patch'] - 128.)/128.
-        #     patch = patch.reshape((1, 64, 64, 3)).astype(np.float32)
-        #     label = dic['label']
-        #     prediction = sess.run(pred, feed_dict={x: patch})
-        #     print 'label: %d, prediction: %d' % (label, prediction)
-
-        # classes = os.listdir(FLAGS.data_dir)
-        #
-        # for label, class_name in enumerate(classes):
-        #     img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
-        #     for img_name in img_names:
-        #         full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-        #         img = plt.imread(full_path)
-        #         h = img.shape[0]
-        #         w = img.shape[1]
-        #         for i in xrange(10):
-        #             start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
-        #             start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
-        #             patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
-        #             patch = patch.reshape((1, 64, 64, 3))
-        #             stddev = np.std(patch, ddof=1)
-        #             adjusted_stddev = stddev if stddev > 1.0 / FLAGS.patch_size else 1.0 / FLAGS.patch_size
-        #             patch = (patch - np.mean(patch)) / adjusted_stddev
-        #
-        #             result = sess.run(pred ,feed_dict={x: patch})
-        #             print img_name + ' captured by ' + class_name + ', patch ' + str(i) + ' prediction: ' + \
-        #                 meta[result[0]]
+                    result = sess.run(pred ,feed_dict={x: patch})
+                    print img_name + ' captured by ' + class_name + ', patch ' + str(i) + ' prediction: ' + \
+                        meta[result[0]]
 
 
 
