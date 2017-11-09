@@ -91,8 +91,9 @@ def main(_):
 
                     data = np.ndarray(shape=(FLAGS.batch_size, 64, 64, 3), dtype=np.uint8)
                     labels = np.ndarray(shape=(FLAGS.batch_size, 1), dtype=np.int64)
+                    idx = np.random.randint(0, len(mlist), FLAGS.batch_size)
                     for i in xrange(FLAGS.batch_size):
-                        dic = np.load(os.path.join(root, mlist[i])).item()
+                        dic = np.load(os.path.join(root, mlist[idx[i]])).item()
                         data[i, ...] = dic['patch']
                         labels[i, ...] = dic['label']
                     data = (data - 128.)/128.
