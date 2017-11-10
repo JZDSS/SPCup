@@ -85,8 +85,8 @@ def main(_):
 
     with tf.variable_scope('net'):
         # y, keep_prob = build_net(x)
-        with tf.device('/gpu:4'):
-            y, _ = res.build_net(x, 3, FLAGS.num_classes)
+        # with tf.device('/gpu:4'):
+        y, _ = res.build_net(x, 3, FLAGS.num_classes)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
@@ -119,9 +119,9 @@ def main(_):
         # learning_rate = tf.train.exponential_decay(FLAGS.learning_rate,
         #     global_step, FLAGS.decay_steps, FLAGS.decay_rate, True, "learning_rate")
         learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
-        with tf.device('/gpu:4'):
-            train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
-                total_loss, global_step=global_step)
+        # with tf.device('/gpu:4'):
+        train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
+            total_loss, global_step=global_step)
     tf.summary.scalar('lr', learning_rate)
 
     merged = tf.summary.merge_all()
@@ -130,9 +130,6 @@ def main(_):
         saver = tf.train.Saver(name="saver")
 
     with tf.Session() as sess:
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
-        saver = tf.train.Saver(name="saver")
 
         if tf.gfile.Exists(os.path.join(FLAGS.ckpt_dir, 'checkpoint')):
             saver.restore(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
@@ -192,8 +189,6 @@ def main(_):
                     print acc
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, 'model.ckpt'))
 
-        coord.request_stop()
-        coord.join(threads)
 
 
     train_writer.close()

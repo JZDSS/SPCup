@@ -4,7 +4,9 @@ import os
 import matplotlib.pyplot as plt
 from random import shuffle
 import numpy as np
+from caffe import layers as L
 
+L.BatchNorm
 
 flags = tf.app.flags
 
@@ -15,16 +17,7 @@ flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can g
 flags.DEFINE_bool('keep', True, '')
 FLAGS = flags.FLAGS
 
-def get_patches(img, max_patches):
-    h = img.shape[0]
-    w = img.shape[1]
-    n = 0
-    while n < max_patches:
-        start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
-        start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
-        patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
-        n = n + 1
-        yield patch
+
 
 def _bytes_feature(value):
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -55,9 +48,18 @@ def main(_):
             dice = np.random.randint(0, 5, 1)
             # writer = train_writer if dice != 0 else valid_writer
             set = 'train' if dice != 0 else 'valid'
-            for n, patch in enumerate(get_patches(img, FLAGS.max_patches)):
+            h = img.shape[0]
+            w = img.shape[1]
+            for n in xrange(FLAGS.max_patches):
+                start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
+                start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
+                patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
                 np.save(os.path.join('./tmp', set, class_name + '_' + img_name + '_' + str(n) + '.npy'), {'label': label, 'patch': patch})
-
+                dic = np.load(os.path.join('./tmp', set, class_name + '_' + img_name + '_' + str(n) + '.npy')).item()
+                loded_patch = dic['patch']
+                loded_label = dic['label']
+                assert patch.any() == loded_patch.any()
+                assert label == loded_label
     # train = os.listdir('./tmp/train')
     # valid = os.listdir('./tmp/valid')
     # idx = range(len(train))
