@@ -8,5 +8,6 @@ tfmodels/
 caffemodels/
 patches/
 spc_classes.txt
-res20/
 ckpt/
+res20/
+*.py~
