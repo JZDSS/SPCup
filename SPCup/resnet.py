@@ -24,8 +24,9 @@ def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = F
                                 weights_initializer=tf.truncated_normal_initializer(
                                     stddev=math.sqrt(2.0 /  num_outputs)),
                                 weights_regularizer=layers.l2_regularizer(weight_decay),
-                                scope='short_cut', normalizer_fn=layers.batch_norm,
-                                normalizer_params={'is_training': is_training}, stride=[2, 2])
+                                # biases_regularizer=layers.l2_regularizer(weight_decay),
+                                scope='short_cut', stride=[2, 2], normalizer_fn=layers.batch_norm, 
+                                normalizer_params={'is_training': is_training})
         res = tf.nn.relu(res + inputs)
 
     return res
@@ -57,5 +58,7 @@ def build_net(x, n, is_training):
                   weights_initializer=tf.truncated_normal_initializer(
                       stddev=math.sqrt(2.0 / 64 / 10)),
                   weights_regularizer=layers.l2_regularizer(0.0001),
-                  biases_regularizer=layers.l2_regularizer(0.0001))
+                  normalizer_fn=layers.batch_norm,
+                  normalizer_params={'is_training': is_training})
+
     return tf.reshape(h, [-1, 10])

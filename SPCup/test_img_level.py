@@ -14,7 +14,7 @@ flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_string('set', 'valid', '')
 flags.DEFINE_string('meta_dir', './meta', '')
-
+flags.DEFINE_string('gpu', '3', '')
 FLAGS = flags.FLAGS
 
 
@@ -38,7 +38,10 @@ def standardization(x):
 
 
 def main(_):
-
+    os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.7
+    config.gpu_options.allow_growth = True
     if not tf.gfile.Exists(FLAGS.data_dir):
         raise RuntimeError('data direction is not exist!')
 
@@ -78,11 +81,11 @@ def main(_):
     f.close()
     confusion = np.zeros(shape=(10, 10), dtype=np.uint32)
     confusion_i = np.zeros(shape=(10, 10), dtype=np.uint32)
-    total = 0
-    correct = 0
-    total_p = 0
-    correct_p = 0
-    with tf.Session() as sess:
+    total = 0.
+    correct = 0.
+    total_p = 0.
+    correct_p = 0.
+    with tf.Session(config = config) as sess:
         if tf.gfile.Exists(os.path.join(FLAGS.ckpt_dir, 'checkpoint')):
             saver.restore(sess, os.path.join(FLAGS.ckpt_dir, FLAGS.model_name))
         else:
@@ -105,8 +108,8 @@ def main(_):
                 confusion[label, n] = confusion[label, n] + 1
             total_p = total_p + FLAGS.patches
             count = np.bincount(prediction)
-            prediction = np.argmax(count)[0]
-            confusion_i[label, prediction] = confusion[label, prediction] + 1
+            prediction = np.argmax(count)
+            confusion_i[label, prediction] = confusion_i[label, prediction] + 1
             print("predict %d while true label is %d." % (prediction, label))
             total = total + 1
             if prediction == label:

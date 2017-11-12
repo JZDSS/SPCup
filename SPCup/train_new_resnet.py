@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.losses as loss
 import numpy as np
 import os
+import time
 
 import resnet as res
 
@@ -41,23 +42,29 @@ flags.DEFINE_string('log_dir', './logs', 'log direction')
 flags.DEFINE_string('ckpt_dir', './ckpt', 'check point direction')
 flags.DEFINE_float('weight_decay', 0.0001, 'weight decay')
 flags.DEFINE_float('momentum', 0.9, 'momentum')
-tf.app.flags.DEFINE_integer('batch_size', 128, 'batch size')
-tf.app.flags.DEFINE_integer('max_steps', 64000, 'max steps')
-tf.app.flags.DEFINE_integer('start_step', 1, 'start steps')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('max_steps', 64000, 'max steps')
+flags.DEFINE_integer('start_step', 1, 'start steps')
 flags.DEFINE_string('model_name', 'model', '')
-
+flags.DEFINE_string('gpu', '3', '')
+flags.DEFINE_integer('blocks', 3, '')
 FLAGS = flags.FLAGS
 
 
 def main(_):
-
+    os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.7
+    config.gpu_options.allow_growth = True
     if not tf.gfile.Exists(FLAGS.data_dir):
         raise RuntimeError('data direction is not exist!')
 
-    # if tf.gfile.Exists(FLAGS.log_dir):
-    #     tf.gfile.DeleteRecursively(FLAGS.log_dir)
-    # tf.gfile.MakeDirs(FLAGS.log_dir)
+    if tf.gfile.Exists(FLAGS.log_dir):
+        tf.gfile.DeleteRecursively(FLAGS.log_dir)
+    tf.gfile.MakeDirs(FLAGS.log_dir)
 
+    if not tf.gfile.Exists(FLAGS.ckpt_dir):
+        tf.gfile.MakeDirs(FLAGS.ckpt_dir)
     train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
     valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
 
@@ -67,18 +74,19 @@ def main(_):
 
     with tf.name_scope('label'):
         y_ = tf.placeholder(tf.int64, [None, 1], 'y')
+    
     is_training = tf.placeholder(tf.bool)
+    
     with tf.variable_scope('net'):
-        y = res.build_net(x, 3, is_training)
+        y = res.build_net(x, FLAGS.blocks, is_training)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
         total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
-        tf.summary.scalar('loss', total_loss)
-
         with tf.name_scope('accuracy'):
             correct_prediction = tf.equal(tf.reshape(tf.argmax(y, 1), [-1, 1]), y_)
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        tf.summary.scalar('loss', total_loss)
         tf.summary.scalar('accuracy', accuracy)
 
     with tf.name_scope('train'):
@@ -86,8 +94,7 @@ def main(_):
         learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(
-                total_loss, global_step=global_step)
+            train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(total_loss, global_step=global_step)
     tf.summary.scalar('lr', learning_rate)
 
     merged = tf.summary.merge_all()
@@ -95,7 +102,7 @@ def main(_):
     with tf.name_scope("saver"):
         saver = tf.train.Saver(name="saver")
 
-    with tf.Session() as sess:
+    with tf.Session(config = config) as sess:
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
@@ -124,12 +131,13 @@ def main(_):
 
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
             sess.run(train_step, feed_dict=feed_dict(True, True))
-            if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
-                acc0, summary = sess.run([accuracy, merged], feed_dict=feed_dict(False, False))
+            if i % 1000 == 0 and i != 0:  # Record summaries and test-set accuracy
+                loss0, acc0, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(False, False))
                 test_writer.add_summary(summary, i)
-                acc1, summary = sess.run([accuracy, merged], feed_dict=feed_dict(True, False))
+                loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(True, False))
                 train_writer.add_summary(summary, i)
-                print('step %d: train_acc=%f; test_acc=%f' % (i, acc1, acc0))
+                print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+                print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0))
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, FLAGS.model_name))
 
         coord.request_stop()

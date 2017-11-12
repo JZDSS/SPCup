@@ -10,4 +10,4 @@ patches/
 spc_classes.txt
 ckpt/
 res20/
-
+*.py~
