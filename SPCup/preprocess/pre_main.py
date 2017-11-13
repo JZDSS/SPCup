@@ -19,11 +19,14 @@ def main(args):
             img = cv2.imread(full_path)
             if args.compression:
                 cv2.imwrite(out_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), args.quality])
-                print(out_path)
+                print(out_path + ' quality: ' + str(args.quality) + '%')
             elif args.cropping:
                 pass
             elif args.contrast_enhancement:
-                pass
+                avg = np.mean(img)
+                img = avg + (img - avg) * (1 + args.percent)
+                cv2.imwrite(out_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), args.quality])
+                print(out_path + ' quality: ' + str(args.quality) + '%')
             else:
                 raise RuntimeError('Please chose a pre-process type!')
 
@@ -32,7 +35,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pre-process')
     parser.add_argument('-d', '--data_dir', help='Data direction', type=str, default='../../data')
     parser.add_argument('-o', '--out_dir', help='Output direction', type=str)
-    parser.add_argument('-q', '--quality', help='JPEG image quality', type=int, default=0)
+    parser.add_argument('-q', '--quality', help='JPEG image quality', type=int, default=100)
+    parser.add_argument('-p', '--percent', help='contrast enhancement p% (-1<=p<=1)', type=float, default=0)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-com', '--compression', help='JPEG re-compression', action="store_true")
     group.add_argument('-cro', '--cropping', help='Cropping', action="store_true")
