@@ -32,6 +32,8 @@ def _bytes_feature(value):
 def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
         tf.gfile.MakeDirs(FLAGS.out_dir)
+    if not tf.gfile.Exists(FLAGS.meta_dir):
+        tf.gfile.MakeDirs(FLAGS.meta_dir)
     tf.gfile.MakeDirs('./tmp/train')
     tf.gfile.MakeDirs('./tmp/valid')
     classes = os.listdir(FLAGS.data_dir)
