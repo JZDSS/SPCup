@@ -1,10 +1,11 @@
-import tensorflow as tf
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+
+from nets import resnet as res
 from utils.patch import get_patches
-import resnet as res
 
 flags = tf.app.flags
 

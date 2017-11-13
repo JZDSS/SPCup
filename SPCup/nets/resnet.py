@@ -1,6 +1,8 @@
 import tensorflow.contrib.layers as layers
 import tensorflow as tf
 import math
+
+
 def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = False):
     with tf.variable_scope(scope):
 

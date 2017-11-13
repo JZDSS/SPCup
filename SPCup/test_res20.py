@@ -1,13 +1,10 @@
-import tensorflow as tf
-import tensorflow.contrib.losses as loss
-import tensorflow.contrib.layers as layers
-import numpy as np
 import os
-import pickle
-import time
-import matplotlib.pyplot as plt
 
-import resnet as res
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+
+from nets import resnet as res
 
 flags = tf.app.flags
 

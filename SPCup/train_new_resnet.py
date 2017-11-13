@@ -1,10 +1,11 @@
-import tensorflow as tf
-import tensorflow.contrib.losses as loss
-import numpy as np
 import os
 import time
 
-import resnet as res
+import numpy as np
+import tensorflow as tf
+import tensorflow.contrib.losses as loss
+
+from nets import resnet as res
 
 
 def read_from_tfrecord(tfrecord_file_queue):
