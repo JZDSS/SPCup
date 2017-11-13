@@ -1,0 +1,1 @@
+python ../preprocess/pre_main.py -com -q 85 -o ../../compressed -d ../../data
