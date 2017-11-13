@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from utils.patch import get_patches
 import resnet as res
 
 flags = tf.app.flags
@@ -16,18 +17,6 @@ flags.DEFINE_string('set', 'valid', '')
 flags.DEFINE_string('meta_dir', './meta', '')
 flags.DEFINE_string('gpu', '3', '')
 FLAGS = flags.FLAGS
-
-
-def get_patches(img, max_patches):
-    h = img.shape[0]
-    w = img.shape[1]
-    n = 0
-    while n < max_patches:
-        start_r = np.random.randint(0, h - FLAGS.patch_size, 1)[0]
-        start_c = np.random.randint(0, w - FLAGS.patch_size, 1)[0]
-        patch = img[start_r:start_r + FLAGS.patch_size, start_c:start_c + FLAGS.patch_size, :]
-        n = n + 1
-        yield patch
 
 
 def standardization(x):
