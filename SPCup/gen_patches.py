@@ -95,7 +95,7 @@ def main(_):
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches):
                     n = n + 1
-                    np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy',
+                    np.save(os.path.join('./tmp', sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
                             {'label': labels[i], 'patch': patch})
 
         save_npy('train')
@@ -103,6 +103,8 @@ def main(_):
 
     train = os.listdir('./tmp/train')
     valid = os.listdir('./tmp/valid')
+    print(len(train))
+    print(len(valid))
     idx = list(range(len(train)))
     shuffle(idx)
     for i in idx:
