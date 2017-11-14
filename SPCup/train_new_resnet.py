@@ -24,15 +24,16 @@ def read_from_tfrecord(tfrecord_file_queue):
     ground_truth = tf.reshape(ground_truth, [1])
     return image, ground_truth
 
-def input_pipeline(filenames, batch_size, num_epochs=None):
+def input_pipeline(filenames, batch_size, read_threads=2, num_epochs=None):
     filename_queue = tf.train.string_input_producer(
-        filenames, num_epochs=num_epochs, shuffle=True)
-    example, label = read_from_tfrecord(filename_queue)
-    min_after_dequeue = 1000
+      filenames, num_epochs=num_epochs, shuffle=True)
+    example_list = [read_from_tfrecord(filename_queue)
+                  for _ in range(read_threads)]
+    min_after_dequeue = 10000
     capacity = min_after_dequeue + 3 * batch_size
-    example_batch, label_batch = tf.train.shuffle_batch(
-        [example, label], batch_size=batch_size, capacity=capacity,
-        min_after_dequeue=min_after_dequeue)
+    example_batch, label_batch = tf.train.shuffle_batch_join(
+      example_list, batch_size=batch_size, capacity=capacity,
+      min_after_dequeue=min_after_dequeue)
     return example_batch, label_batch
 
 
@@ -66,8 +67,10 @@ def main(_):
 
     if not tf.gfile.Exists(FLAGS.ckpt_dir):
         tf.gfile.MakeDirs(FLAGS.ckpt_dir)
-    train_example_batch, train_label_batch = input_pipeline([FLAGS.data_dir + '/spc_train.tfrecords'], FLAGS.batch_size)
-    valid_example_batch, valid_label_batch = input_pipeline([FLAGS.data_dir + '/spc_valid.tfrecords'], FLAGS.batch_size)
+    train_example_batch, train_label_batch = input_pipeline(
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train')), FLAGS.batch_size)
+    valid_example_batch, valid_label_batch = input_pipeline(
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid')), FLAGS.batch_size)
 
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
