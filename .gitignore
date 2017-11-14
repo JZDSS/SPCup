@@ -12,3 +12,4 @@ ckpt/
 res20/
 *.py~
 *.jpg
+meta/

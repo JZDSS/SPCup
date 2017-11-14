@@ -18,7 +18,7 @@ def read_from_tfrecord(tfrecord_file_queue):
     ground_truth = tf.reshape(ground_truth, [1])
     return image, ground_truth
 
-image, label = read_from_tfrecord(tf.train.string_input_producer(['../patches/spc_train.tfrecords']))
+image, label = read_from_tfrecord(tf.train.string_input_producer(['../../patches/spc_train.tfrecords']))
 with tf.Session() as sess:
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
