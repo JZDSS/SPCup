@@ -50,6 +50,7 @@ flags.DEFINE_integer('start_step', 1, 'start steps')
 flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 3, '')
+flags.DEFINE_float('scale', 2., '')
 FLAGS = flags.FLAGS
 
 
