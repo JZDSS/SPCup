@@ -25,6 +25,8 @@ def main(_):
         tf.gfile.MakeDirs(FLAGS.out_dir)
     if not tf.gfile.Exists(FLAGS.meta_dir):
         tf.gfile.MakeDirs(FLAGS.meta_dir)
+    if tf.gfile.Exists('./tmp'):
+        tf.gfile.DeleteRecursively('./tmp')
     tf.gfile.MakeDirs('./tmp/train')
     tf.gfile.MakeDirs('./tmp/valid')
     classes = os.listdir(FLAGS.data_dir)
