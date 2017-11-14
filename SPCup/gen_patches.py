@@ -14,6 +14,7 @@ flags.DEFINE_string('out_dir', '../patches', 'Output direction')
 flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
 flags.DEFINE_string('meta_dir', './meta', '')
+
 FLAGS = flags.FLAGS
 
 
@@ -23,13 +24,13 @@ def _bytes_feature(value):
 def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
         tf.gfile.MakeDirs(FLAGS.out_dir)
-    if not tf.gfile.Exists(FLAGS.meta_dir):
-        tf.gfile.MakeDirs(FLAGS.meta_dir)
+
     if tf.gfile.Exists('./tmp'):
         tf.gfile.DeleteRecursively('./tmp')
     tf.gfile.MakeDirs('./tmp/train')
     tf.gfile.MakeDirs('./tmp/valid')
-    classes = os.listdir(FLAGS.data_dir)
+
+
 
     train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
     valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
@@ -37,28 +38,68 @@ def main(_):
     train_writer = tf.python_io.TFRecordWriter(train_name)
     valid_writer = tf.python_io.TFRecordWriter(valid_name)
 
-    spc_classes = open(os.path.join(FLAGS.meta_dir, 'spc_classes.txt'), 'w')
-    train_list = open(os.path.join(FLAGS.meta_dir, 'train.txt'), 'w')
-    valid_list = open(os.path.join(FLAGS.meta_dir, 'valid.txt'), 'w')
-    for label, class_name in enumerate(classes):
-        spc_classes.write(('%d ' % label) + class_name + '\n')
-        img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
-        for img_name in img_names:
-            full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-            print('processing ' + full_path)
-            img = plt.imread(full_path)
-            dice = np.random.randint(0, 5, 1)
-            # writer = train_writer if dice != 0 else valid_writer
-            if dice != 0:
-                sett = 'train'
-                train_list.write(img_name + (' %d\n' % label))
-            else:
-                sett = 'valid'
-                valid_list.write(img_name + (' %d\n' % label))
-            n = 0
-            for patch in get_patches(img, FLAGS.max_patches):
-                n = n + 1
-                np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
+    if not tf.gfile.Exists(FLAGS.meta_dir):
+        tf.gfile.MakeDirs(FLAGS.meta_dir)
+        classes = os.listdir(FLAGS.data_dir)
+        spc_classes = open(os.path.join(FLAGS.meta_dir, 'spc_classes.txt'), 'w')
+        train_list = open(os.path.join(FLAGS.meta_dir, 'train.txt'), 'w')
+        valid_list = open(os.path.join(FLAGS.meta_dir, 'valid.txt'), 'w')
+        for label, class_name in enumerate(classes):
+            spc_classes.write(('%d ' % label) + class_name + '\n')
+            img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
+            for img_name in img_names:
+                full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
+                print('processing ' + full_path)
+                img = plt.imread(full_path)
+                dice = np.random.randint(0, 5, 1)
+                # writer = train_writer if dice != 0 else valid_writer
+                if dice != 0:
+                    sett = 'train'
+                    train_list.write(img_name + (' %d\n' % label))
+                else:
+                    sett = 'valid'
+                    valid_list.write(img_name + (' %d\n' % label))
+                n = 0
+                for patch in get_patches(img, FLAGS.max_patches):
+                    n = n + 1
+                    np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
+        spc_classes.close()
+        train_list.close()
+        valid_list.close()
+    else:
+        f = open(os.path.join(FLAGS.meta_dir, 'spc_classes.txt'), 'r')
+        meta = {}
+        line = f.readline()
+        while line:
+            label, class_name = line.split(' ')
+            class_name = class_name[0:-1]
+            meta[int(label)] = class_name
+            line = f.readline()
+        f.close()
+        def save_npy(sett):
+            f = open(os.path.join(FLAGS.meta_dir, sett) + '.txt', 'r')
+            image_names = []
+            labels = []
+            line = f.readline()
+            while line:
+                image_name, label = line.split(' ')
+                label = label[0:-1]
+                image_names.append(image_name)
+                labels.append(int(label))
+                line = f.readline()
+            f.close()
+            for i, img_name in enumerate(image_names):
+                full_path = os.path.join(FLAGS.data_dir, meta[labels[i]], img_name)
+                print('processing ' + full_path)
+                img = plt.imread(full_path)
+                n = 0
+                for patch in get_patches(img, FLAGS.max_patches):
+                    n = n + 1
+                    np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy',
+                            {'label': labels[i], 'patch': patch})
+
+        save_npy('train')
+        save_npy('valid')
 
     train = os.listdir('./tmp/train')
     valid = os.listdir('./tmp/valid')
@@ -91,9 +132,7 @@ def main(_):
 
     train_writer.close()
     valid_writer.close()
-    spc_classes.close()
-    train_list.close()
-    valid_list.close()
+
 
     # tf.gfile.DeleteRecursively('./tmp')
 
