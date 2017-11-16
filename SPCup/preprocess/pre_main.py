@@ -1,3 +1,4 @@
+# coding:utf-8
 import argparse
 import numpy as np
 import os
@@ -23,8 +24,13 @@ def main(args):
             elif args.cropping:
                 pass
             elif args.contrast_enhancement:
-                avg = np.mean(img)
-                img = avg + (img - avg) * (1 + args.percent)
+                # 转到YCbCr，并在Y通道做直方图均衡化
+                imgYCC = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
+                equ = cv2.equalizeHist(imgYCC[:, :, 0])
+                imgYCC[:, :, 0] = equ
+                img = cv2.cvtColor(imgYCC, cv2.COLOR_YCR_CB2BGR)
+                # avg = np.mean(img)
+                # img = avg + (img - avg) * (1 + args.percent)
                 cv2.imwrite(out_path, img, [int(cv2.IMWRITE_JPEG_QUALITY), args.quality])
                 print(out_path + ' quality: ' + str(args.quality) + '%')
             else:
