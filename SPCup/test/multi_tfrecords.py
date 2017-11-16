@@ -1,6 +1,6 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
-
+import os
 def read_from_tfrecord(tfrecord_file_queue):
     # tfrecord_file_queue = tf.train.string_input_producer(filenames, name='queue')
     reader = tf.TFRecordReader()
@@ -28,14 +28,18 @@ def input_pipeline(filenames, batch_size, read_threads=2, num_epochs=None):
       example_list, batch_size=batch_size, capacity=capacity,
       min_after_dequeue=min_after_dequeue)
     return example_batch, label_batch
+os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.7
+config.gpu_options.allow_growth = True
 
+image, label = input_pipeline(['/home/amax/QiYao/res/Res32_3/train/q85_train.tfrecords', '/home/amax/QiYao/res/Res32_3/train/q80_train.tfrecords'], 100)
 
-image, label = input_pipeline(['./tfrecords/red.tfrecords', './tfrecords/green.tfrecords'], 100)
-
-with tf.Session() as sess:
+with tf.Session(config = config) as sess:
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
     im, lab = sess.run([image, label])
+    print lab
     for i in range(100):
         plt.imshow(im[i, :])
         plt.show()
