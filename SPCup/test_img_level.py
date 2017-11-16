@@ -39,7 +39,7 @@ def main(_):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
     with tf.variable_scope('net'):
-        y = res.build_net(x, 3, False)
+        y = res.build_net(x, 5, False)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):
