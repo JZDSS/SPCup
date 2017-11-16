@@ -49,8 +49,7 @@ flags.DEFINE_integer('max_steps', 64000, 'max steps')
 flags.DEFINE_integer('start_step', 1, 'start steps')
 flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_string('gpu', '3', '')
-flags.DEFINE_integer('blocks', 3, '')
-flags.DEFINE_float('scale', 2., '')
+flags.DEFINE_integer('blocks', 5, '')
 FLAGS = flags.FLAGS
 
 
@@ -69,9 +68,9 @@ def main(_):
     if not tf.gfile.Exists(FLAGS.ckpt_dir):
         tf.gfile.MakeDirs(FLAGS.ckpt_dir)
     train_example_batch, train_label_batch = input_pipeline(
-        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train')), FLAGS.batch_size)
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train', '*.tfrecords')), FLAGS.batch_size)
     valid_example_batch, valid_label_batch = input_pipeline(
-        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid')), FLAGS.batch_size)
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid', '*.tfrecords')), FLAGS.batch_size)
 
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
@@ -96,7 +95,7 @@ def main(_):
 
     with tf.name_scope('train'):
         global_step = tf.Variable(FLAGS.start_step, name="global_step")
-        learning_rate = tf.train.piecewise_constant(global_step, [32000, 48000], [0.1, 0.01, 0.001])
+        learning_rate = tf.train.piecewise_constant(global_step, [24000, 32000, 48000], [0.1, 0.01, 0.001, 0.0001])
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(total_loss, global_step=global_step)
@@ -108,9 +107,10 @@ def main(_):
         saver = tf.train.Saver(name="saver")
 
     with tf.Session(config = config) as sess:
+        sess.run(tf.local_variables_initializer())
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
-
+        
         if tf.gfile.Exists(os.path.join(FLAGS.ckpt_dir, 'checkpoint')):
             saver.restore(sess, os.path.join(FLAGS.ckpt_dir, FLAGS.model_name))
         else:
