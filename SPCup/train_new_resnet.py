@@ -135,11 +135,13 @@ def main(_):
             return {x: xs, y_: ys, is_training: on_training}
 
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
-            sess.run(train_step, feed_dict=feed_dict(True, True))
+            feed = feed_dict(True, True)
+            sess.run(train_step, feed_dict=feed)
             if i % 1000 == 0 and i != 0:  # Record summaries and test-set accuracy
                 loss0, acc0, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(False, False))
                 test_writer.add_summary(summary, i)
-                loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(True, False))
+                feed[is_training] = FLAGS
+                loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed)
                 train_writer.add_summary(summary, i)
                 print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
                 print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0))
