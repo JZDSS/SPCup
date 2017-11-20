@@ -26,7 +26,7 @@ FLAGS = flags.FLAGS
 def standardization(x):
     mean = np.mean(x)
     stddev = np.std(x)
-    adjusted_stddev = max(stddev, 1/np.sqrt(64 * 64 * 3))
+    adjusted_stddev = max(stddev, 1./np.sqrt(64 * 64 * 3))
     return (x - mean) / adjusted_stddev
 
 
@@ -96,8 +96,9 @@ def main(_):
             img = plt.imread(full_path)
             data = np.ndarray(shape=(FLAGS.patches, FLAGS.patch_size, FLAGS.patch_size, 3), dtype=np.float32)
             for n, patch in enumerate(get_patches(img, FLAGS.patches)):
+                patch = standardization(patch)
                 data[n, :] = patch
-            data = standardization(data)
+            # data = standardization(data)
             prediction = sess.run(pred, feed_dict={x: data})
             for n in prediction:
                 if n == label:
