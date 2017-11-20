@@ -1,5 +1,5 @@
+from __future__ import print_function
 import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -18,6 +18,8 @@ flags.DEFINE_string('set', 'valid', '')
 flags.DEFINE_string('meta_dir', './meta', '')
 flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 5, '')
+flags.DEFINE_string('out_file', '', '')
+
 FLAGS = flags.FLAGS
 
 
@@ -29,6 +31,10 @@ def standardization(x):
 
 
 def main(_):
+    f = open(FLAGS.out_file, 'w')
+    if not f:
+        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
+
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.7
@@ -101,21 +107,21 @@ def main(_):
             count = np.bincount(prediction)
             prediction = np.argmax(count)
             confusion_i[label, prediction] = confusion_i[label, prediction] + 1
-            print("predict %d while true label is %d." % (prediction, label))
+            print("predict %d while true label is %d." % (prediction, label), file=f)
             total = total + 1
             if prediction == label:
                 correct = correct + 1
-    print('accuracy(patch level) = %f' % (correct_p / total_p))
-    print('accuracy(image level) = %f' % (correct / total))
-    print('confusion matrix--patch level:')
-    print(confusion)
-    print('confusion matrix--image level:')
-    print(confusion_i)
-    print('/|\\')
-    print(' |')
-    print('actual')
-    print(' |')
-    print(' ---prediction--->')
+    print('accuracy(patch level) = %f' % (correct_p / total_p), file=f)
+    print('accuracy(image level) = %f' % (correct / total), file=f)
+    print('confusion matrix--patch level:', file=f)
+    print(confusion, file=f)
+    print('confusion matrix--image level:', file=f)
+    print(confusion_i, file=f)
+    print('/|\\', file=f)
+    print(' |', file=f)
+    print('actual', file=f)
+    print(' |', file=f)
+    print(' ---prediction--->', file=f)
 
 
 if __name__ == '__main__':
