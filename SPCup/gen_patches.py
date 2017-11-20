@@ -136,7 +136,7 @@ def main(_):
     valid_writer.close()
 
 
-    # tf.gfile.DeleteRecursively('./tmp')
+    tf.gfile.DeleteRecursively('./tmp')
 
 
 if __name__ == "__main__":
