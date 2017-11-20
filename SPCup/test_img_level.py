@@ -109,6 +109,7 @@ def main(_):
             prediction = np.argmax(count)
             confusion_i[label, prediction] = confusion_i[label, prediction] + 1
             print("predict %d while true label is %d." % (prediction, label), file=f)
+            f.flush()
             total = total + 1
             if prediction == label:
                 correct = correct + 1
@@ -123,7 +124,7 @@ def main(_):
     print('actual', file=f)
     print(' |', file=f)
     print(' ---prediction--->', file=f)
-
+    f.close()
 
 if __name__ == '__main__':
     tf.app.run()

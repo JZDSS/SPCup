@@ -150,6 +150,7 @@ def main(_):
                 print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), file=f)
                 print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0), file=f)
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, FLAGS.model_name))
+                f.flush()
 
         coord.request_stop()
         coord.join(threads)

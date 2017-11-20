@@ -54,6 +54,7 @@ def main(_):
             for img_name in img_names:
                 full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
                 print('processing ' + full_path, file=f)
+                f.flush()
                 img = plt.imread(full_path)
                 dice = np.random.randint(0, 5, 1)
                 dd = dice
