@@ -17,6 +17,7 @@ flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_string('set', 'valid', '')
 flags.DEFINE_string('meta_dir', './meta', '')
 flags.DEFINE_string('gpu', '3', '')
+flags.DEFINE_integer('blocks', 5, '')
 FLAGS = flags.FLAGS
 
 
@@ -39,7 +40,7 @@ def main(_):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
     with tf.variable_scope('net'):
-        y = res.build_net(x, 5, False)
+        y = res.build_net(x, FLAGS.blocks, False)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):
