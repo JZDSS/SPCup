@@ -25,7 +25,8 @@ def _bytes_feature(value):
 
 def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
-        tf.gfile.MakeDirs(FLAGS.out_dir)
+        tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'train'))
+        tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
 
     if tf.gfile.Exists('./tmp'):
         tf.gfile.DeleteRecursively('./tmp')
@@ -36,8 +37,8 @@ def main(_):
     if not f:
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
 
-    train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
-    valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
+    train_name = os.path.join(FLAGS.out_dir, 'train', 'spc_train.tfrecords')
+    valid_name = os.path.join(FLAGS.out_dir, 'train', 'spc_valid.tfrecords')
 
     train_writer = tf.python_io.TFRecordWriter(train_name)
     valid_writer = tf.python_io.TFRecordWriter(valid_name)
