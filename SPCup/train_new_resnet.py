@@ -1,10 +1,10 @@
+from __future__ import print_function
 import os
 import time
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.losses as loss
-
 from nets import resnet as res
 
 
@@ -50,10 +50,14 @@ flags.DEFINE_integer('start_step', 1, 'start steps')
 flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 5, '')
+flags.DEFINE_string('out_file', '', '')
 FLAGS = flags.FLAGS
 
 
 def main(_):
+    f = open(FLAGS.out_file, 'w')
+    if not f:
+        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.7
@@ -143,8 +147,8 @@ def main(_):
                 feed[is_training] = FLAGS
                 loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed)
                 train_writer.add_summary(summary, i)
-                print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-                print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0))
+                print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), file=f)
+                print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0), file=f)
                 saver.save(sess, os.path.join(FLAGS.ckpt_dir, FLAGS.model_name))
 
         coord.request_stop()
@@ -152,6 +156,7 @@ def main(_):
 
     train_writer.close()
     test_writer.close()
+    f.close()
 
 
 if __name__ == '__main__':

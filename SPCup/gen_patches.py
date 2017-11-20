@@ -1,4 +1,5 @@
 # coding:utf-8
+from __future__ import print_function
 import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ flags.DEFINE_string('out_dir', '../patches', 'Output direction')
 flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
 flags.DEFINE_string('meta_dir', './meta', '')
+flags.DEFINE_string('out_file', '', '')
 
 FLAGS = flags.FLAGS
 
@@ -30,7 +32,9 @@ def main(_):
     tf.gfile.MakeDirs('./tmp/train')
     tf.gfile.MakeDirs('./tmp/valid')
 
-
+    f = open(FLAGS.out_file, 'w')
+    if not f:
+        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
 
     train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
     valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
@@ -49,11 +53,12 @@ def main(_):
             img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
             for img_name in img_names:
                 full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-                print('processing ' + full_path)
+                print('processing ' + full_path, file=f)
                 img = plt.imread(full_path)
                 dice = np.random.randint(0, 5, 1)
+                dd = dice
                 # writer = train_writer if dice != 0 else valid_writer
-                if dice != 0:
+                if dd != 0:
                     sett = 'train'
                     train_list.write(img_name + (' %d\n' % label))
                 else:
@@ -90,7 +95,7 @@ def main(_):
             f.close()
             for i, img_name in enumerate(image_names):
                 full_path = os.path.join(FLAGS.data_dir, meta[labels[i]], img_name)
-                print('processing ' + full_path)
+                print('processing ' + full_path, file=f)
                 img = plt.imread(full_path)
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches):
@@ -103,8 +108,8 @@ def main(_):
 
     train = os.listdir('./tmp/train')
     valid = os.listdir('./tmp/valid')
-    print(len(train))
-    print(len(valid))
+    # print(len(train))
+    # print(len(valid))
     idx = list(range(len(train)))
     shuffle(idx)
     for i in idx:
@@ -135,7 +140,7 @@ def main(_):
     train_writer.close()
     valid_writer.close()
 
-
+    f.close()
     tf.gfile.DeleteRecursively('./tmp')
 
 
