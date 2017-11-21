@@ -51,6 +51,7 @@ flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 5, '')
 flags.DEFINE_string('out_file', '', '')
+flags.DEFINE_integer('patch_size', 64, '')
 FLAGS = flags.FLAGS
 
 
@@ -77,7 +78,7 @@ def main(_):
         tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid', '*.tfrecords')), FLAGS.batch_size)
 
     with tf.name_scope('input'):
-        x = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x')
+        x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
         tf.summary.image('show', x, 1)
 
     with tf.name_scope('label'):

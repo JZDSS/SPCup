@@ -54,8 +54,9 @@ def build_net(x, n, is_training):
     for i in range(2, n + 1):
         h = block(h, 64, 0.0001, '64_block{}'.format(i), is_training)
 
-    # h.get_shape().as_list()
-    h = layers.avg_pool2d(h, [16, 16], scope='global_pool')
+    shape = h.get_shape().as_list()
+
+    h = layers.avg_pool2d(h, [shape[1], shape[2]], scope='global_pool')
     h = layers.conv2d(inputs=h, num_outputs=10, kernel_size=[1, 1], scope='fc1', padding='VALID',
                   weights_initializer=tf.truncated_normal_initializer(
                       stddev=math.sqrt(2.0 / 64 / 10)),

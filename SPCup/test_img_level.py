@@ -26,7 +26,7 @@ FLAGS = flags.FLAGS
 def standardization(x):
     mean = np.mean(x)
     stddev = np.std(x)
-    adjusted_stddev = max(stddev, 1./np.sqrt(64 * 64 * 3))
+    adjusted_stddev = max(stddev, 1./np.sqrt(FLAGS.patch_size * FLAGS.patch_size * 3))
     return (x - mean) / adjusted_stddev
 
 
