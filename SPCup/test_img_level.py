@@ -31,8 +31,8 @@ def standardization(x):
 
 
 def main(_):
-    f = open(FLAGS.out_file, 'w')
-    if not f:
+    ff = open(FLAGS.out_file, 'w')
+    if not ff:
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
 
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
@@ -108,23 +108,23 @@ def main(_):
             count = np.bincount(prediction)
             prediction = np.argmax(count)
             confusion_i[label, prediction] = confusion_i[label, prediction] + 1
-            print("predict %d while true label is %d." % (prediction, label), file=f)
-            f.flush()
+            print("predict %d while true label is %d." % (prediction, label), file=ff)
+            ff.flush()
             total = total + 1
             if prediction == label:
                 correct = correct + 1
-    print('accuracy(patch level) = %f' % (correct_p / total_p), file=f)
-    print('accuracy(image level) = %f' % (correct / total), file=f)
-    print('confusion matrix--patch level:', file=f)
-    print(confusion, file=f)
-    print('confusion matrix--image level:', file=f)
-    print(confusion_i, file=f)
-    print('/|\\', file=f)
-    print(' |', file=f)
-    print('actual', file=f)
-    print(' |', file=f)
-    print(' ---prediction--->', file=f)
-    f.close()
+    print('accuracy(patch level) = %f' % (correct_p / total_p), file=ff)
+    print('accuracy(image level) = %f' % (correct / total), file=ff)
+    print('confusion matrix--patch level:', file=ff)
+    print(confusion, file=ff)
+    print('confusion matrix--image level:', file=ff)
+    print(confusion_i, file=ff)
+    print('/|\\', file=ff)
+    print(' |', file=ff)
+    print('actual', file=ff)
+    print(' |', file=ff)
+    print(' ---prediction--->', file=ff)
+    ff.close()
 
 if __name__ == '__main__':
     tf.app.run()
