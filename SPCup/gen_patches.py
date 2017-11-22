@@ -100,7 +100,7 @@ def main(_):
                 print('processing ' + full_path, file=ff)
                 img = plt.imread(full_path)
                 n = 0
-                for patch in get_patches(img, FLAGS.max_patches):
+                for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                     n = n + 1
                     np.save(os.path.join('./tmp', sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
                             {'label': labels[i], 'patch': patch})
