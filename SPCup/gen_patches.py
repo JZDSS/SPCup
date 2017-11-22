@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from random import shuffle
 import numpy as np
 from utils.patch import get_patches
+import time
 
 
 flags = tf.app.flags
@@ -28,10 +29,10 @@ def main(_):
         tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'train'))
         tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
 
-    if tf.gfile.Exists('./tmp'):
-        tf.gfile.DeleteRecursively('./tmp')
-    tf.gfile.MakeDirs('./tmp/train')
-    tf.gfile.MakeDirs('./tmp/valid')
+    temp_name = '%.06f' % time.time()
+    if tf.gfile.Exists(temp_name):
+        tf.gfile.MakeDirs(os.path.join(temp_name, 'train'))
+        tf.gfile.MakeDirs(os.path.join(temp_name, 'valid'))
 
     ff = open(FLAGS.out_file, 'w')
     if not ff:
@@ -69,7 +70,7 @@ def main(_):
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                     n = n + 1
-                    np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
+                    np.save(os.path.join(temp_name, sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
         spc_classes.close()
         train_list.close()
         valid_list.close()
@@ -102,20 +103,20 @@ def main(_):
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                     n = n + 1
-                    np.save(os.path.join('./tmp', sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
+                    np.save(os.path.join(temp_name, sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
                             {'label': labels[i], 'patch': patch})
 
         save_npy('train')
         save_npy('valid')
 
-    train = os.listdir('./tmp/train')
-    valid = os.listdir('./tmp/valid')
+    train = os.listdir(os.path.join(temp_name, 'train'))
+    valid = os.listdir(os.path.join(temp_name, 'valid'))
     # print(len(train))
     # print(len(valid))
     idx = list(range(len(train)))
     shuffle(idx)
     for i in idx:
-        dic = np.load(os.path.join('./tmp/train', train[i])).item()
+        dic = np.load(os.path.join(temp_name, 'train', train[i])).item()
         patch = dic['patch']
         label = dic['label']
 
@@ -129,7 +130,7 @@ def main(_):
     idx = list(range(len(valid)))
     shuffle(idx)
     for i in idx:
-        dic = np.load(os.path.join('./tmp/valid', valid[i])).item()
+        dic = np.load(os.path.join(temp_name, 'valid', valid[i])).item()
         patch = dic['patch']
         label = dic['label']
         patch_raw = patch.tostring()
@@ -143,7 +144,7 @@ def main(_):
     valid_writer.close()
 
     ff.close()
-    tf.gfile.DeleteRecursively('./tmp')
+    tf.gfile.DeleteRecursively(temp_name)
 
 
 if __name__ == "__main__":

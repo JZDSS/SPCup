@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from random import shuffle
 import numpy as np
 from utils.patch import get_patches
+import time
 
 
 flags = tf.app.flags
@@ -25,15 +26,16 @@ def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
         tf.gfile.MakeDirs(FLAGS.out_dir)
 
-    if tf.gfile.Exists('./tmp'):
-        tf.gfile.DeleteRecursively('./tmp')
-    tf.gfile.MakeDirs('./tmp/train')
-    tf.gfile.MakeDirs('./tmp/valid')
+    temp_name = '%.06f' % time.time()
+
+    if tf.gfile.Exists(temp_name):
+        tf.gfile.MakeDirs(os.path.join(temp_name, 'train'))
+        tf.gfile.MakeDirs(os.path.join(temp_name, 'valid'))
 
 
 
-    train_name = os.path.join(FLAGS.out_dir, 'spc_train.tfrecords')
-    valid_name = os.path.join(FLAGS.out_dir, 'spc_valid.tfrecords')
+    train_name = os.path.join(FLAGS.out_dir, 'train', 'spc_train.tfrecords')
+    valid_name = os.path.join(FLAGS.out_dir, 'valid', 'spc_valid.tfrecords')
 
     train_writer = tf.python_io.TFRecordWriter(train_name)
     valid_writer = tf.python_io.TFRecordWriter(valid_name)
@@ -63,13 +65,13 @@ def main(_):
                     n = 0
                     for patch in get_patches(img, FLAGS.max_patches):
                         n = n + 1
-                        np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
+                        np.save(os.path.join(temp_name, sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
         spc_classes.close()
         train_list.close()
         valid_list.close()
     else:
         print('meta file exist, skip!')
-        pass
+        raise RuntimeError('not supported yet')
         # not supported yet
         f = open(os.path.join(FLAGS.meta_dir, 'spc_classes.txt'), 'r')
         meta = {}
@@ -99,20 +101,20 @@ def main(_):
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches):
                     n = n + 1
-                    np.save(os.path.join('./tmp', sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
+                    np.save(os.path.join(temp_name, sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
                             {'label': labels[i], 'patch': patch})
 
         save_npy('train')
         save_npy('valid')
 
-    train = os.listdir('./tmp/train')
-    valid = os.listdir('./tmp/valid')
+    train = os.listdir(os.path.join(temp_name, 'train'))
+    valid = os.listdir(os.path.join(temp_name, 'valid'))
     print(len(train))
     print(len(valid))
     idx = list(range(len(train)))
     shuffle(idx)
     for i in idx:
-        dic = np.load(os.path.join('./tmp/train', train[i])).item()
+        dic = np.load(os.path.join(temp_name, 'train', train[i])).item()
         patch = dic['patch']
         label = dic['label']
 
@@ -126,7 +128,7 @@ def main(_):
     idx = list(range(len(valid)))
     shuffle(idx)
     for i in idx:
-        dic = np.load(os.path.join('./tmp/valid', valid[i])).item()
+        dic = np.load(os.path.join(temp_name, 'valid', valid[i])).item()
         patch = dic['patch']
         label = dic['label']
         patch_raw = patch.tostring()
@@ -140,7 +142,7 @@ def main(_):
     valid_writer.close()
 
 
-    # tf.gfile.DeleteRecursively('./tmp')
+    tf.gfile.DeleteRecursively(temp_name)
 
 
 if __name__ == "__main__":
