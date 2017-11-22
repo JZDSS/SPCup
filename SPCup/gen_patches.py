@@ -38,7 +38,7 @@ def main(_):
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
 
     train_name = os.path.join(FLAGS.out_dir, 'train', 'spc_train.tfrecords')
-    valid_name = os.path.join(FLAGS.out_dir, 'train', 'spc_valid.tfrecords')
+    valid_name = os.path.join(FLAGS.out_dir, 'valid', 'spc_valid.tfrecords')
 
     train_writer = tf.python_io.TFRecordWriter(train_name)
     valid_writer = tf.python_io.TFRecordWriter(valid_name)
