@@ -1,4 +1,5 @@
 # coding:utf-8
+from __future__ import print_function
 import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ flags.DEFINE_string('out_dir', '../patches', 'Output direction')
 flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
 flags.DEFINE_string('meta_dir', './meta', '')
+flags.DEFINE_string('out_file', '', '')
 
 FLAGS = flags.FLAGS
 
@@ -25,7 +27,9 @@ def _bytes_feature(value):
 def main(_):
     if not tf.gfile.Exists(FLAGS.out_dir):
         tf.gfile.MakeDirs(FLAGS.out_dir)
-
+    ff = open(FLAGS.out_file, 'w')
+    if not ff:
+        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
     temp_name = '%.06f' % time.time()
 
     if tf.gfile.Exists(temp_name):
@@ -59,7 +63,7 @@ def main(_):
                         train_list.write(os.path.join(class_name, scene, img_name) + (' %d\n' % label))
                     else:
                         valid_list.write(os.path.join(class_name, scene, img_name) + (' %d\n' % label))
-                    print('processing ' + full_path)
+                    print('processing ' + full_path, file=ff)
                     img = plt.imread(full_path)
                     dice = np.random.randint(0, 5, 1)
                     n = 0
@@ -96,7 +100,7 @@ def main(_):
             f.close()
             for i, img_name in enumerate(image_names):
                 full_path = os.path.join(FLAGS.data_dir, meta[labels[i]], img_name)
-                print('processing ' + full_path)
+                print('processing ' + full_path, file=ff)
                 img = plt.imread(full_path)
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches):
@@ -141,7 +145,7 @@ def main(_):
     train_writer.close()
     valid_writer.close()
 
-
+    ff.close()
     tf.gfile.DeleteRecursively(temp_name)
 
 
