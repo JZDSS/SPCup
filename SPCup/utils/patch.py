@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_patches(img, max_patches, patch_size = 64):
+def get_patches(img, max_patches, patch_size):
     h = img.shape[0]
     w = img.shape[1]
     n = 0

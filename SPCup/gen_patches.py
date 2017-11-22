@@ -67,7 +67,7 @@ def main(_):
                     sett = 'valid'
                     valid_list.write(img_name + (' %d\n' % label))
                 n = 0
-                for patch in get_patches(img, FLAGS.max_patches):
+                for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                     n = n + 1
                     np.save(os.path.join('./tmp', sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
         spc_classes.close()
