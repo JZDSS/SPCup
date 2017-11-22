@@ -33,8 +33,8 @@ def main(_):
     tf.gfile.MakeDirs('./tmp/train')
     tf.gfile.MakeDirs('./tmp/valid')
 
-    f = open(FLAGS.out_file, 'w')
-    if not f:
+    ff = open(FLAGS.out_file, 'w')
+    if not ff:
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
 
     train_name = os.path.join(FLAGS.out_dir, 'train', 'spc_train.tfrecords')
@@ -54,8 +54,8 @@ def main(_):
             img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
             for img_name in img_names:
                 full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
-                print('processing ' + full_path, file=f)
-                f.flush()
+                print('processing ' + full_path, file=ff)
+                ff.flush()
                 img = plt.imread(full_path)
                 dice = np.random.randint(0, 5, 1)
                 dd = dice
@@ -97,7 +97,7 @@ def main(_):
             f.close()
             for i, img_name in enumerate(image_names):
                 full_path = os.path.join(FLAGS.data_dir, meta[labels[i]], img_name)
-                print('processing ' + full_path, file=f)
+                print('processing ' + full_path, file=ff)
                 img = plt.imread(full_path)
                 n = 0
                 for patch in get_patches(img, FLAGS.max_patches):
@@ -142,7 +142,7 @@ def main(_):
     train_writer.close()
     valid_writer.close()
 
-    f.close()
+    ff.close()
     tf.gfile.DeleteRecursively('./tmp')
 
 
