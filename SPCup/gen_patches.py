@@ -30,7 +30,7 @@ def main(_):
         tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
 
     temp_name = '%.06f' % time.time()
-    if tf.gfile.Exists(temp_name):
+    if not tf.gfile.Exists(temp_name):
         tf.gfile.MakeDirs(os.path.join(temp_name, 'train'))
         tf.gfile.MakeDirs(os.path.join(temp_name, 'valid'))
 

@@ -99,7 +99,7 @@ def main(_):
             label = labels[i]
             class_name = meta[label]
             image_name = image_names[i]
-            full_path = os.path.join(FLAGS.data_dir, class_name, image_name)
+            full_path = os.path.join(FLAGS.data_dir, image_name)
             img = plt.imread(full_path)
             data = np.ndarray(shape=(FLAGS.patches, FLAGS.patch_size, FLAGS.patch_size, 3), dtype=np.float32)
             for n, patch in enumerate(get_patches(img, FLAGS.patches, FLAGS.patch_size)):

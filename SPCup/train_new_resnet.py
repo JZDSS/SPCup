@@ -56,9 +56,7 @@ def input_pipeline(filenames, batch_size, read_threads=2, num_epochs=None):
 
 
 def main(_):
-    f = open(FLAGS.out_file, 'w')
-    if not f:
-        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
+    
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.7
@@ -76,7 +74,9 @@ def main(_):
         tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train', '*.tfrecords')), FLAGS.batch_size)
     valid_example_batch, valid_label_batch = input_pipeline(
         tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid', '*.tfrecords')), FLAGS.batch_size)
-
+    f = open(FLAGS.out_file, 'w')
+    if not f:
+        raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
         tf.summary.image('show', x, 1)
@@ -145,8 +145,8 @@ def main(_):
             if i % 1000 == 0 and i != 0:  # Record summaries and test-set accuracy
                 loss0, acc0, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(False, False))
                 test_writer.add_summary(summary, i)
-                feed[is_training] = FLAGS
-                loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed)
+                # feed[is_training] = FLAGS
+                loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(True, False))
                 train_writer.add_summary(summary, i)
                 print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), file=f)
                 print('step %d: train_acc=%f, train_loss=%f; test_acc=%f, test_loss=%f' % (i, acc1, loss1, acc0, loss0), file=f)

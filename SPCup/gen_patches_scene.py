@@ -25,14 +25,14 @@ def _bytes_feature(value):
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 def main(_):
-    if not tf.gfile.Exists(FLAGS.out_dir):
-        tf.gfile.MakeDirs(FLAGS.out_dir)
+    tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'train'))
+    tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
     ff = open(FLAGS.out_file, 'w')
     if not ff:
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
     temp_name = '%.06f' % time.time()
 
-    if tf.gfile.Exists(temp_name):
+    if not tf.gfile.Exists(temp_name):
         tf.gfile.MakeDirs(os.path.join(temp_name, 'train'))
         tf.gfile.MakeDirs(os.path.join(temp_name, 'valid'))
 
@@ -54,8 +54,9 @@ def main(_):
             spc_classes.write(('%d ' % label) + class_name + '\n')
             scenes = os.listdir(os.path.join(FLAGS.data_dir, class_name))
             dice = np.random.randint(0, 5, 1)
+            a = dice
             for j, scene in enumerate(scenes):
-                sett = 'valid' if j == dice else 'train'
+                sett = 'valid' if j == a else 'train'
                 img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name, scene))
                 for img_name in img_names:
                     full_path = os.path.join(FLAGS.data_dir, class_name, scene, img_name)
@@ -67,16 +68,13 @@ def main(_):
                     img = plt.imread(full_path)
                     dice = np.random.randint(0, 5, 1)
                     n = 0
-                    for patch in get_patches(img, FLAGS.max_patches):
+                    for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                         n = n + 1
                         np.save(os.path.join(temp_name, sett, class_name + '_' + img_name + '_' + str(n)) + '.npy', {'label': label, 'patch': patch})
         spc_classes.close()
         train_list.close()
         valid_list.close()
     else:
-        print('meta file exist, skip!')
-        raise RuntimeError('not supported yet')
-        # not supported yet
         f = open(os.path.join(FLAGS.meta_dir, 'spc_classes.txt'), 'r')
         meta = {}
         line = f.readline()
@@ -92,20 +90,28 @@ def main(_):
             labels = []
             line = f.readline()
             while line:
-                image_name, label = line.split(' ')
+                l = line.split(' ')
+                if len(l) > 2:
+                    image_name = l[0] + ' ' + l[1]
+                    label = l[2]
+                else:
+                    image_name = l[0]
+                    label = l[1]
+                # image_name, label = line.split(' ')
                 label = label[0:-1]
                 image_names.append(image_name)
                 labels.append(int(label))
                 line = f.readline()
             f.close()
             for i, img_name in enumerate(image_names):
-                full_path = os.path.join(FLAGS.data_dir, meta[labels[i]], img_name)
+                full_path = os.path.join(FLAGS.data_dir, img_name)
                 print('processing ' + full_path, file=ff)
                 img = plt.imread(full_path)
                 n = 0
-                for patch in get_patches(img, FLAGS.max_patches):
+                for patch in get_patches(img, FLAGS.max_patches, FLAGS.patch_size):
                     n = n + 1
-                    np.save(os.path.join(temp_name, sett, meta[labels[i]] + '_' + img_name + '_' + str(n)) + '.npy',
+                    img_name0 = img_name.split('/')[-1]
+                    np.save(os.path.join(temp_name, sett, meta[labels[i]] + '_' + img_name0 + '_' + str(n)) + '.npy',
                             {'label': labels[i], 'patch': patch})
 
         save_npy('train')
