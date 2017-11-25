@@ -5,7 +5,6 @@ import time
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.losses as loss
-from nets import resnet as res
 
 flags = tf.app.flags
 
@@ -22,6 +21,7 @@ flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 5, '')
 flags.DEFINE_string('out_file', '', '')
 flags.DEFINE_integer('patch_size', 64, '')
+flags.DEFINE_string('type', '', '')
 FLAGS = flags.FLAGS
 
 
@@ -86,8 +86,15 @@ def main(_):
     
     is_training = tf.placeholder(tf.bool)
     
+    if FLAGS.type == 'resnet':
+        from nets import resnet as my_net
+    elif FLAGS.type == 'slim':
+        from nets import slim as my_net
+    else:
+        raise RuntimeError('Type error!!')
+
     with tf.variable_scope('net'):
-        y = res.build_net(x, FLAGS.blocks, is_training)
+        y = my_net.build_net(x, FLAGS.blocks, is_training)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')

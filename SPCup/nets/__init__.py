@@ -1,1 +1,1 @@
-__all__=['resnet']
+__all__=['resnet', 'slim']

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from nets import resnet as res
 from utils.patch import get_patches
 
 flags = tf.app.flags
@@ -45,8 +44,15 @@ def main(_):
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
+    if FLAGS.type == 'resnet':
+        from nets import resnet as my_net
+    elif FLAGS.type == 'slim':
+        from nets import slim as my_net
+    else:
+        raise RuntimeError('Type error!!')
+    
     with tf.variable_scope('net'):
-        y = res.build_net(x, FLAGS.blocks, False)
+        y = my_net.build_net(x, FLAGS.blocks, False)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):

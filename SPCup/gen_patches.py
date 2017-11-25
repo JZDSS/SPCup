@@ -25,9 +25,9 @@ def _bytes_feature(value):
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 def main(_):
-    if not tf.gfile.Exists(FLAGS.out_dir):
-        tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'train'))
-        tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
+
+    tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'train'))
+    tf.gfile.MakeDirs(os.path.join(FLAGS.out_dir, 'valid'))
 
     temp_name = '%.06f' % time.time()
     if not tf.gfile.Exists(temp_name):
