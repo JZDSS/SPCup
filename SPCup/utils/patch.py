@@ -1,5 +1,5 @@
 import numpy as np
-
+import tensorflow as tf
 
 def get_patches(img, max_patches, patch_size):
     h = img.shape[0]
@@ -11,3 +11,4 @@ def get_patches(img, max_patches, patch_size):
         patch = img[start_r:start_r + patch_size, start_c:start_c + patch_size, :]
         n = n + 1
         yield patch
+

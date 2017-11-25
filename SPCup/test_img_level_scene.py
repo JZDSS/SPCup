@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
+from nets import build
 from utils.patch import get_patches
 
 flags = tf.app.flags
@@ -44,15 +44,7 @@ def main(_):
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
-    if FLAGS.type == 'resnet':
-        from nets import resnet as my_net
-    elif FLAGS.type == 'slim':
-        from nets import slim as my_net
-    else:
-        raise RuntimeError('Type error!!')
-    
-    with tf.variable_scope('net'):
-        y = my_net.build_net(x, FLAGS.blocks, False)
+    y = build.net(x, FLAGS, False)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):
@@ -66,13 +58,13 @@ def main(_):
     labels = []
     line = f.readline()
     while line:
-    	l = line.split(' ')
-    	if len(l) == 2:
-    		image_name = l[0]
-    		label = l[1]
-    	else:
-    		image_name = l[0] + ' ' + l[1]
-    		label = l[2]
+        l = line.split(' ')
+        if len(l) == 2:
+            image_name = l[0]
+            label = l[1]
+        else:
+            image_name = l[0] + ' ' + l[1]
+            label = l[2]
         # image_name, label = line.split(' ')
         label = label[0:-1]
         image_names.append(image_name)

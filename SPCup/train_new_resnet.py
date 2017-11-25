@@ -5,6 +5,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.losses as loss
+from nets import build
 
 flags = tf.app.flags
 
@@ -85,16 +86,8 @@ def main(_):
         y_ = tf.placeholder(tf.int64, [None, 1], 'y')
     
     is_training = tf.placeholder(tf.bool)
-    
-    if FLAGS.type == 'resnet':
-        from nets import resnet as my_net
-    elif FLAGS.type == 'slim':
-        from nets import slim as my_net
-    else:
-        raise RuntimeError('Type error!!')
 
-    with tf.variable_scope('net'):
-        y = my_net.build_net(x, FLAGS.blocks, is_training)
+    y = build.net(x, FLAGS, is_training)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')

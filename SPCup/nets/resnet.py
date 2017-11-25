@@ -5,7 +5,6 @@ import math
 
 def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = False):
     with tf.variable_scope(scope):
-
         num_inputs = inputs.get_shape().as_list()[3]
 
         res = layers.conv2d(inputs, num_outputs = num_outputs, kernel_size=[3, 3], stride=2 if down_sample else 1,
@@ -35,10 +34,11 @@ def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = F
 
 
 def build_net(x, n, is_training):
+    shape = x.get_shape().as_list()
     with tf.variable_scope('pre'):
         pre = layers.conv2d(inputs=x, num_outputs=16,  kernel_size = [3, 3], scope='conv',
                             weights_initializer=tf.truncated_normal_initializer(
-                            stddev=math.sqrt(2.0 / 9.0 / 3)),
+                            stddev=math.sqrt(2.0 / 9.0 / shape[3])),
                             weights_regularizer=layers.l2_regularizer(0.0001),
                             normalizer_fn=layers.batch_norm, normalizer_params={'is_training': is_training})
         # pre = layers.max_pool2d(pre, [2, 2], padding='SAME', scope='pool')
