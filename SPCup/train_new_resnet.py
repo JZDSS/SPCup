@@ -15,7 +15,7 @@ flags.DEFINE_string('ckpt_dir', './ckpt', 'check point direction')
 flags.DEFINE_float('weight_decay', 0.0001, 'weight decay')
 flags.DEFINE_float('momentum', 0.9, 'momentum')
 flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('max_steps', 64000, 'max steps')
+flags.DEFINE_integer('max_steps', 172000, 'max steps')
 flags.DEFINE_integer('start_step', 1, 'start steps')
 flags.DEFINE_string('model_name', 'model', '')
 flags.DEFINE_string('gpu', '3', '')
@@ -62,6 +62,8 @@ def main(_):
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.7
     config.gpu_options.allow_growth = True
+    config.allow_soft_placement = True
+
     if not tf.gfile.Exists(FLAGS.data_dir):
         raise RuntimeError('data direction is not exist!')
 
@@ -100,7 +102,8 @@ def main(_):
 
     with tf.name_scope('train'):
         global_step = tf.Variable(FLAGS.start_step, name="global_step")
-        learning_rate = tf.train.piecewise_constant(global_step, [24000, 32000, 48000], [0.1, 0.01, 0.001, 0.0001])
+        # learning_rate = tf.train.piecewise_constant(global_step, [32000, 64000, 108000, ], [0.01, 0.001, 0.0001, 0.00001])
+        learning_rate = tf.train.exponential_decay(0.01, global_step, 32000, 0.1)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(total_loss, global_step=global_step)
