@@ -67,10 +67,10 @@ def main(_):
 
     y = twins.build_net(x1, x2, FLAGS.blocks, is_training)
     y = tf.nn.softmax(y)
-    y_ = tf.reshape(tf.one_hot(y_, 2), [-1, 2])
-    weights = y_ * 10
+    y_onehot = tf.reshape(tf.one_hot(y_, 2), [-1, 2])
+    weights = y_onehot * 10
     with tf.name_scope('scores'):
-        loss.mean_squared_error(y, y_, weights)
+        loss.mean_squared_error(y, y_onehot, weights)
         total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
         with tf.name_scope('accuracy'):
             correct_prediction = tf.equal(tf.reshape(tf.argmax(y, 1), [-1, 1]), y_)
