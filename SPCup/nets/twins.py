@@ -65,8 +65,8 @@ def build_net(x1, x2, n, is_training):
 
     h = tf.concat([h1, h2], axis=3)
 
-    h = block(h, 128, 0.0001, '128_block1', is_training, True)
-    for i in range(2, n + 1):
+    # h = block(h, 128, 0.0001, '128_block1', is_training, True)
+    for i in range(1, n + 1):
         h = block(h, 64, 0.0001, '128_block{}'.format(i), is_training)
 
     shape = h.get_shape().as_list()
@@ -80,3 +80,5 @@ def build_net(x1, x2, n, is_training):
                       normalizer_params={'is_training': is_training})
 
     return tf.reshape(h, [-1, 2])
+
+

@@ -65,7 +65,7 @@ def main(_):
 
     is_training = tf.placeholder(tf.bool)
 
-    y = twins.build_net(x1, x2, FLAGS, is_training)
+    y = twins.build_net(x1, x2, FLAGS.blocks, is_training)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
