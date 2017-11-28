@@ -31,79 +31,79 @@ def get_batch(filename,batch_size):
     return tf.reshape(labels,[batch_size,10]),tf.reshape(images,[batch_size,784])
 
 def main(_):
-	#os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-	config = tf.ConfigProto()
-	#config.gpu_options.per_process_gpu_memory_fraction = 0.9
-	#config.gpu_options.allow_growth = True
-	x = tf.placeholder(tf.float32, [None, 784])
-	y_ = tf.placeholder(tf.float32, [None, 10])
-	phase = tf.placeholder(tf.bool,name='phase')
-	with tf.name_scope('net1'):
-		y_conv1 = net.deepnn(x,phase)
-	with tf.name_scope('net2'):
-		y_conv2 = net.deepnn(x,phase)
-	with tf.name_scope('net3'):
-		y_conv3 = net.deepnn(x,phase)
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    config = tf.ConfigProto()
+    #config.gpu_options.per_process_gpu_memory_fraction = 0.9
+    #config.gpu_options.allow_growth = True
+    x = tf.placeholder(tf.float32, [None, 784])
+    y_ = tf.placeholder(tf.float32, [None, 10])
+    phase = tf.placeholder(tf.bool,name='phase')
+    with tf.name_scope('net1'):
+        y_conv1 = net.deepnn(x,phase)
+    with tf.name_scope('net2'):
+        y_conv2 = net.deepnn(x,phase)
+    with tf.name_scope('net3'):
+        y_conv3 = net.deepnn(x,phase)
 
-	y_conv = tf.concat([y_conv1, y_conv2, y_conv3], 1)
-	y_conv = tf.reshape(y_conv, [-1, 30])
-	y_conv = layers.fully_connected(y_conv, 10, activation_fn=None,
-						   weights_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    y_conv = tf.concat([y_conv1, y_conv2, y_conv3], 1)
+    y_conv = tf.reshape(y_conv, [-1, 30])
+    y_conv = layers.fully_connected(y_conv, 10, activation_fn=None,
+                           weights_initializer=tf.truncated_normal_initializer(stddev=0.01))
 
-	with tf.name_scope('loss'):
-		cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
+    with tf.name_scope('loss'):
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
                                                             logits=y_conv)
-		loss = tf.reduce_mean(cross_entropy)
-		tf.summary.scalar('loss',loss,collections=None)
-	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-	global_step = tf.Variable(0,trainable=False)
-	learning_rate = tf.train.exponential_decay(0.001,global_step,1000,0.9,staircase=True)
-	with tf.control_dependencies(update_ops):
-		train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss,global_step)
-	with tf.name_scope('accuracy'):
-		correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-		correct_prediction = tf.cast(correct_prediction, tf.float32)
-		accuracy = tf.reduce_mean(correct_prediction)
-		tf.summary.scalar('accuracy',accuracy,collections=None)
-	#
-	# trianlabels,trainimages = get_batch(traindata,batch_size=128)
-	# testlabels,testimages = get_batch(testdata,batch_size=500)
-	net1_varlist = {v.op.name.lstrip("net1/"): v
-					for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net1/")}
-	net1_saver = tf.train.Saver(var_list=net1_varlist)
+        loss = tf.reduce_mean(cross_entropy)
+        tf.summary.scalar('loss',loss,collections=None)
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    global_step = tf.Variable(0,trainable=False)
+    learning_rate = tf.train.exponential_decay(0.001,global_step,1000,0.9,staircase=True)
+    with tf.control_dependencies(update_ops):
+        train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss,global_step)
+    with tf.name_scope('accuracy'):
+        correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+        correct_prediction = tf.cast(correct_prediction, tf.float32)
+        accuracy = tf.reduce_mean(correct_prediction)
+        tf.summary.scalar('accuracy',accuracy,collections=None)
+    #
+    # trianlabels,trainimages = get_batch(traindata,batch_size=128)
+    # testlabels,testimages = get_batch(testdata,batch_size=500)
+    net1_varlist = {v.op.name.lstrip("net1/"): v
+                    for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net1/")}
+    net1_saver = tf.train.Saver(var_list=net1_varlist)
 
-	# Strip off the "net2/" prefix to get the names of the variables in the checkpoint.
-	net2_varlist = {v.op.name.lstrip("net2/"): v
-					for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net2/")}
-	net2_saver = tf.train.Saver(var_list=net2_varlist)
+    # Strip off the "net2/" prefix to get the names of the variables in the checkpoint.
+    net2_varlist = {v.op.name.lstrip("net2/"): v
+                    for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net2/")}
+    net2_saver = tf.train.Saver(var_list=net2_varlist)
 
-	net3_varlist = {v.op.name.lstrip("net3/"): v
-					for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net3/")}
-	net3_saver = tf.train.Saver(var_list=net3_varlist)
+    net3_varlist = {v.op.name.lstrip("net3/"): v
+                    for v in tf.get_collection(tf.GraphKeys.VARIABLES, scope="net3/")}
+    net3_saver = tf.train.Saver(var_list=net3_varlist)
 
-	with tf.Session(config = config) as sess:
-		merged_summary_op = tf.summary.merge_all()
-		summary_writer = tf.summary.FileWriter('cnn2_0_log',sess.graph)
-		coord = tf.train.Coordinator()
-		threads = tf.train.start_queue_runners(coord=coord)
-		sess.run(tf.global_variables_initializer())
-		net1_saver.restore(sess, os.path.join('./ckpt1', 'net1'))
-		net2_saver.restore(sess, os.path.join('./ckpt2', 'net2'))
-		net3_saver.restore(sess, os.path.join('./ckpt3', 'net3'))
-		# for i in range(2000):
-		# 	batch_y,batch_x= sess.run([trianlabels,trainimages])
-		# 	if (i+1) % 1 == 0:
-		# 		train_accuracy = accuracy.eval(feed_dict={x: batch_x, y_: batch_y,phase:False})
-		# 		testy,testx = sess.run([testlabels,testimages])
-		# 		test_accuracy = accuracy.eval(feed_dict={x: testx, y_: testy,phase:False})
-		# 		print time.asctime(time.localtime())
-		# 		print('step %d, train accuracy %g, test accuracy %g' %(i+1, train_accuracy,test_accuracy))
-		# 		summary_str = sess.run(merged_summary_op,
+    with tf.Session(config = config) as sess:
+        merged_summary_op = tf.summary.merge_all()
+        summary_writer = tf.summary.FileWriter('cnn2_0_log',sess.graph)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+        sess.run(tf.global_variables_initializer())
+        net1_saver.restore(sess, os.path.join('./ckpt1', 'net1'))
+        net2_saver.restore(sess, os.path.join('./ckpt2', 'net2'))
+        net3_saver.restore(sess, os.path.join('./ckpt3', 'net3'))
+        # for i in range(2000):
+        #     batch_y,batch_x= sess.run([trianlabels,trainimages])
+        #     if (i+1) % 1 == 0:
+        #         train_accuracy = accuracy.eval(feed_dict={x: batch_x, y_: batch_y,phase:False})
+        #         testy,testx = sess.run([testlabels,testimages])
+        #         test_accuracy = accuracy.eval(feed_dict={x: testx, y_: testy,phase:False})
+        #         print time.asctime(time.localtime())
+        #         print('step %d, train accuracy %g, test accuracy %g' %(i+1, train_accuracy,test_accuracy))
+        #         summary_str = sess.run(merged_summary_op,
         #                           feed_dict={x: testx,y_:testy,phase:False})
-		# 		summary_writer.add_summary(summary_str,i)
-		# 	train_step.run(feed_dict={x: batch_x, y_: batch_y,phase:True})
-		coord.request_stop()
-		coord.join(threads)
+        #         summary_writer.add_summary(summary_str,i)
+        #     train_step.run(feed_dict={x: batch_x, y_: batch_y,phase:True})
+        coord.request_stop()
+        coord.join(threads)
 if __name__ == '__main__':
     tf.app.run()
 
