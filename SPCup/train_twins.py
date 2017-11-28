@@ -32,7 +32,7 @@ def main(_):
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     num_gpus = len(FLAGS.gpu.split(','))
     config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = 0.7
+    config.gpu_options.per_process_gpu_memory_fraction = 0.9
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
 
@@ -66,9 +66,11 @@ def main(_):
     is_training = tf.placeholder(tf.bool)
 
     y = twins.build_net(x1, x2, FLAGS.blocks, is_training)
-
+    y = tf.nn.softmax(y)
+    y_ = tf.reshape(tf.one_hot(y_, 2), [-1, 2])
+    weights = y_ * 10
     with tf.name_scope('scores'):
-        loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
+        loss.mean_squared_error(y, y_, weights)
         total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
         with tf.name_scope('accuracy'):
             correct_prediction = tf.equal(tf.reshape(tf.argmax(y, 1), [-1, 1]), y_)
