@@ -68,7 +68,7 @@ def main(_):
     y = twins.build_net(x1, x2, FLAGS.blocks, is_training)
     y = tf.nn.softmax(y)
     y_onehot = tf.reshape(tf.one_hot(y_, 2), [-1, 2])
-    weights = y_onehot * 10
+    weights = tf.reshape(tf.cast(y_, tf.float32) * 10, [-1])
     with tf.name_scope('scores'):
         loss.mean_squared_error(y, y_onehot, weights)
         total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')

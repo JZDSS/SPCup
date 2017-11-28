@@ -41,10 +41,6 @@ def build_net(x1, x2, n, is_training):
         h = pre
         for i in range(1, n + 1):
             h = block(h, 16, 0.0001, '16_block{}'.format(i), is_training)
-
-        h = block(h, 32, 0.0001, '32_block1', is_training, True)
-        for i in range(2, n + 1):
-            h = block(h, 32, 0.0001, '32_block{}'.format(i), is_training)
     h1 = h
 
     with tf.variable_scope('right'):
@@ -57,17 +53,17 @@ def build_net(x1, x2, n, is_training):
         h = pre
         for i in range(1, n + 1):
             h = block(h, 16, 0.0001, '16_block{}'.format(i), is_training)
-
-        h = block(h, 32, 0.0001, '32_block1', is_training, True)
-        for i in range(2, n + 1):
-            h = block(h, 32, 0.0001, '32_block{}'.format(i), is_training)
     h2 = h
 
     h = tf.concat([h1, h2], axis=3)
 
-    # h = block(h, 128, 0.0001, '128_block1', is_training, True)
-    for i in range(1, n + 1):
-        h = block(h, 64, 0.0001, '128_block{}'.format(i), is_training)
+    h = block(h, 64, 0.0001, '32_block1', is_training, True)
+    for i in range(2, n + 1):
+        h = block(h, 64, 0.0001, '64_block{}'.format(i), is_training)
+
+    h = block(h, 128, 0.0001, '128_block1', is_training, True)
+    for i in range(2, n + 1):
+        h = block(h, 128, 0.0001, '128_block{}'.format(i), is_training)
 
     shape = h.get_shape().as_list()
 
@@ -81,4 +77,8 @@ def build_net(x1, x2, n, is_training):
 
     return tf.reshape(h, [-1, 2])
 
+if __name__ == '__main__':
+    x1 = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x1')
+    x2 = tf.placeholder(tf.float32, [None, 64, 64, 3], 'x2')
 
+    build_net(x1, x2, 3, False)
