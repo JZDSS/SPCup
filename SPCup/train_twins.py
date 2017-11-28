@@ -46,9 +46,9 @@ def main(_):
     if not tf.gfile.Exists(FLAGS.ckpt_dir):
         tf.gfile.MakeDirs(FLAGS.ckpt_dir)
     train_example_batch, train_label_batch = input_pipeline(
-        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train', '*.tfrecords')), FLAGS.batch_size)
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'train', '*.tfrecords')), FLAGS.batch_size, FLAGS.patch_size)
     valid_example_batch, valid_label_batch = input_pipeline(
-        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid', '*.tfrecords')), FLAGS.batch_size)
+        tf.train.match_filenames_once(os.path.join(FLAGS.data_dir, 'valid', '*.tfrecords')), FLAGS.batch_size, FLAGS.patch_size)
     f = open(FLAGS.out_file, 'w')
     if not f:
         raise RuntimeError('OUTPUT FILE OPEN ERROR!!!!!!')
