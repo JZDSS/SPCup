@@ -1,1 +1,1 @@
-__all__ = ['build', 'resnet', 'slim', 'rgb']
+__all__ = ['build', 'resnet', 'slim', 'rgb', 'twins']

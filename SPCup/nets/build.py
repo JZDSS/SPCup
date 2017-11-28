@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def net(x, FLAGS, is_training):
     type = FLAGS.type
     if type == 'resnet':
@@ -8,6 +9,8 @@ def net(x, FLAGS, is_training):
         from nets import slim as my_net
     elif type == 'rgb':
         from nets import rgb as my_net
+    elif type == 'twins':
+        from nets import twins as my_net
     else:
         raise RuntimeError('Type error!!')
 

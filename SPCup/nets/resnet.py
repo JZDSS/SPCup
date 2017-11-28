@@ -26,7 +26,7 @@ def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = F
                                     stddev=math.sqrt(2.0 /  num_outputs)),
                                 weights_regularizer=layers.l2_regularizer(weight_decay),
                                 # biases_regularizer=layers.l2_regularizer(weight_decay),
-                                scope='short_cut', stride=[2, 2], normalizer_fn=layers.batch_norm, 
+                                scope='short_cut', stride=[2, 2], normalizer_fn=layers.batch_norm,
                                 normalizer_params={'is_training': is_training})
         res = tf.nn.relu(res + inputs)
 
