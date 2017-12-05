@@ -20,6 +20,7 @@ flags.DEFINE_string('gpu', '3', '')
 flags.DEFINE_integer('blocks', 5, '')
 flags.DEFINE_string('out_file', '', '')
 flags.DEFINE_string('type', '', '')
+flags.DEFINE_integer('num_classes', 10, '')
 
 FLAGS = flags.FLAGS
 
@@ -46,11 +47,11 @@ def main(_):
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
-    y = build.net(x, FLAGS, False)
+    y = build.net(x, FLAGS, False, FLAGS.num_classes)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):
-        pred = tf.argmax(y, 1)
+        pred = tf.nn.softmax(y, 1)
 
     with tf.name_scope("saver"):
         saver = tf.train.Saver(name="saver")
@@ -107,13 +108,17 @@ def main(_):
                 data[n, :] = patch
             # data = standardization(data)
             prediction = sess.run(pred, feed_dict={x: data})
-            for n in prediction:
+            prediction0 = np.argmax(prediction, 1)
+            for n in prediction0:
                 if n == label:
                     correct_p = correct_p + 1
                 confusion[label, n] = confusion[label, n] + 1
             total_p = total_p + FLAGS.patches
-            count = np.bincount(prediction)
-            prediction = np.argmax(count)
+            # count = np.bincount(prediction)
+            # prediction = np.argmax(count)
+            prediction = np.sum(prediction, 0)
+            #print(prediction)
+            prediction = np.argmax(prediction)
             confusion_i[label, prediction] = confusion_i[label, prediction] + 1
             print("predict %d while true label is %d." % (prediction, label), file=ff)
             ff.flush()
