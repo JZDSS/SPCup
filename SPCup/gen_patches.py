@@ -52,6 +52,7 @@ def main(_):
         valid_list = open(os.path.join(FLAGS.meta_dir, 'valid.txt'), 'w')
         for label, class_name in enumerate(classes):
             spc_classes.write(('%d ' % label) + class_name + '\n')
+            spc_classes.flush()
             img_names = os.listdir(os.path.join(FLAGS.data_dir, class_name))
             for img_name in img_names:
                 full_path = os.path.join(FLAGS.data_dir, class_name, img_name)
