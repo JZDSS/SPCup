@@ -66,14 +66,14 @@ def main(_):
     is_training = tf.placeholder(tf.bool)
 
     y = twins.build_net(x1, x2, FLAGS.blocks, is_training)
-    y = tf.nn.softmax(y)
-    y_onehot = tf.reshape(tf.one_hot(y_, 2), [-1, 2])
+    y = tf.reshape(tf.nn.sigmoid(y), [-1])
     weights = tf.reshape(tf.cast(y_, tf.float32) * 10, [-1])
+    y_ = tf.reshape(y_, [-1])
     with tf.name_scope('scores'):
-        loss.mean_squared_error(y, y_onehot, weights)
+        loss.mean_squared_error(y, y_, weights)
         total_loss = tf.contrib.losses.get_total_loss(add_regularization_losses=True, name='total_loss')
         with tf.name_scope('accuracy'):
-            correct_prediction = tf.equal(tf.reshape(tf.argmax(y, 1), [-1, 1]), y_)
+            correct_prediction = tf.equal(tf.cast(tf.round(y), tf.int64), y_)
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         tf.summary.scalar('loss', total_loss)
         tf.summary.scalar('accuracy', accuracy)
@@ -81,7 +81,7 @@ def main(_):
     with tf.name_scope('train'):
         global_step = tf.Variable(FLAGS.start_step, name="global_step")
         # learning_rate = tf.train.piecewise_constant(global_step, [32000, 64000, 108000, ], [0.01, 0.001, 0.0001, 0.00001])
-        learning_rate = tf.train.exponential_decay(0.01, global_step, 32000, 0.1)
+        learning_rate = tf.train.exponential_decay(0.1, global_step, 32000, 0.1)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             train_step = tf.train.MomentumOptimizer(learning_rate, momentum=FLAGS.momentum).minimize(total_loss,
@@ -126,7 +126,7 @@ def main(_):
         for i in range(FLAGS.start_step, FLAGS.max_steps + 1):
             feed = feed_dict(True, True)
             sess.run(train_step, feed_dict=feed)
-            if i % 1000 == 0 and i != 0:  # Record summaries and test-set accuracy
+            if i % 100 == 0 and i != 0:  # Record summaries and test-set accuracy
                 loss0, acc0, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(False, False))
                 test_writer.add_summary(summary, i)
                 loss1, acc1, summary = sess.run([total_loss, accuracy, merged], feed_dict=feed_dict(True, False))
