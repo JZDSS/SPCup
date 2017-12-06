@@ -47,7 +47,7 @@ def main(_):
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, FLAGS.patch_size, FLAGS.patch_size, 3], 'x')
 
-    y = build.net(x, FLAGS, False, FLAGS.num_classes)
+    y = build.net(x, FLAGS, False, FLAGS)
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):

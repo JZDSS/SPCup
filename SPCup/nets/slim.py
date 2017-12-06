@@ -34,44 +34,44 @@ def block(inputs, num_outputs, weight_decay, scope, is_training, down_sample = F
     return res
 
 
-def build_net(x, n, is_training):
+def build_net(x, n, is_training, FLAGS):
     with tf.variable_scope('pre'):
         pre = layers.conv2d(inputs=x, num_outputs=16,  kernel_size = [3, 3], scope='conv1',
                             weights_initializer=tf.truncated_normal_initializer(
                             stddev=math.sqrt(2.0 / 9.0 / 3)),
-                            weights_regularizer=layers.l2_regularizer(0.0001),
+                            weights_regularizer=layers.l2_regularizer(FLAGS.weight_decay),
                             normalizer_fn=layers.batch_norm, normalizer_params={'is_training': is_training})
         # pre = layers.max_pool2d(pre, [2, 2], padding='SAME', scope='pool')
     h = pre
     for i in range(1, n + 1):
-        h = block(h, 16, 0.0001, '16_block{}'.format(i), is_training)
+        h = block(h, 16, FLAGS.weight_decay, '16_block{}'.format(i), is_training)
 	
     h = layers.conv2d(inputs=h, num_outputs=32,  kernel_size = [3, 3], scope='conv2',
                             weights_initializer=tf.truncated_normal_initializer(
                             stddev=math.sqrt(2.0 / 9.0 / 32)), stride=[2, 2],
-                            weights_regularizer=layers.l2_regularizer(0.0001),
+                            weights_regularizer=layers.l2_regularizer(FLAGS.weight_decay),
                             normalizer_fn=layers.batch_norm, normalizer_params={'is_training': is_training})
     # h = block(h, 32, 0.0001, '32_block1', is_training, True)
     for i in range(2, n + 1):
-        h = block(h, 32, 0.0001, '32_block{}'.format(i), is_training)
+        h = block(h, 32, FLAGS.weight_decay, '32_block{}'.format(i), is_training)
 	
     h = layers.conv2d(inputs=h, num_outputs=64,  kernel_size = [3, 3], scope='conv3',
                             weights_initializer=tf.truncated_normal_initializer(
                             stddev=math.sqrt(2.0 / 9.0 / 64)), stride=[2, 2],
-                            weights_regularizer=layers.l2_regularizer(0.0001),
+                            weights_regularizer=layers.l2_regularizer(FLAGS.weight_decay),
                             normalizer_fn=layers.batch_norm, normalizer_params={'is_training': is_training})
     # h = block(h, 64, 0.0001, '64_block1', is_training, True)
     for i in range(2, n + 1):
-        h = block(h, 64, 0.0001, '64_block{}'.format(i), is_training)
+        h = block(h, 64, FLAGS.weight_decay, '64_block{}'.format(i), is_training)
 
     shape = h.get_shape().as_list()
 
     h = layers.avg_pool2d(h, [shape[1], shape[2]], scope='global_pool')
-    h = layers.conv2d(inputs=h, num_outputs=10, kernel_size=[1, 1], scope='fc1', padding='VALID',
+    h = layers.conv2d(inputs=h, num_outputs=FLAGS.num_classes, kernel_size=[1, 1], scope='fc1', padding='VALID',
                   weights_initializer=tf.truncated_normal_initializer(
-                      stddev=math.sqrt(2.0 / 64 / 10)),
-                  weights_regularizer=layers.l2_regularizer(0.0001),
+                      stddev=math.sqrt(2.0 / 64 / FLAGS.num_classes)),
+                  weights_regularizer=layers.l2_regularizer(FLAGS.weight_decay),
                   normalizer_fn=layers.batch_norm,
                   normalizer_params={'is_training': is_training})
 
-    return tf.reshape(h, [-1, 10])
+    return tf.reshape(h, [-1, FLAGS.num_classes])

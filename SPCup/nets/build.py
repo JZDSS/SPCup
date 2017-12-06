@@ -21,5 +21,5 @@ def net(x, FLAGS, is_training, num_classes):
         raise RuntimeError('Type error!!')
 
     with tf.variable_scope('net'):
-        y = my_net.build_net(x, FLAGS.blocks, is_training, num_classes)
+        y = my_net.build_net(x, FLAGS.blocks, is_training, FLAGS)
     return y

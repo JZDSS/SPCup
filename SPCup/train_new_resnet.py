@@ -63,7 +63,7 @@ def main(_):
     
     is_training = tf.placeholder(tf.bool)
 
-    y = build.net(x, FLAGS, is_training, FLAGS.num_classes)
+    y = build.net(x, FLAGS, is_training, FLAGS)
 
     with tf.name_scope('scores'):
         loss.sparse_softmax_cross_entropy(y, y_, scope='cross_entropy')
