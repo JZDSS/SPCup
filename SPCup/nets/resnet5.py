@@ -61,7 +61,7 @@ def build_net(x, n, is_training, FLAGS):
                   weights_initializer=tf.truncated_normal_initializer(
                       stddev=math.sqrt(2.0 / 64 / FLAGS.num_classes)),
                   weights_regularizer=layers.l2_regularizer(FLAGS.weight_decay),
-                  normalizer_fn=layers.batch_norm,
+                  normalizer_fn=layers.batch_norm, activation_fn=None,
                   normalizer_params={'is_training': is_training})
 
     return tf.reshape(h, [-1, FLAGS.num_classes])

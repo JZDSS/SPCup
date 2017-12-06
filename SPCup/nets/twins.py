@@ -73,7 +73,7 @@ def build_net(x1, x2, n, is_training):
                       weights_initializer=tf.truncated_normal_initializer(
                           stddev=math.sqrt(2.0 / 64 / 10)),
                       weights_regularizer=layers.l2_regularizer(0.0001),
-                      biases_regularizer=layers.l2_regularizer(0.0001))
+                      biases_regularizer=layers.l2_regularizer(0.0001), activation_fn=None)
 
     return tf.reshape(h, [-1,])
 
