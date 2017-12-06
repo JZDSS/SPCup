@@ -17,12 +17,14 @@ flags.DEFINE_integer('patch_size', 64, '')
 flags.DEFINE_integer('max_patches', 100, 'number of patches that one image can generate at most')
 flags.DEFINE_string('meta_dir', './meta', '')
 flags.DEFINE_string('out_file', '', '')
+flags.DEFINE_integer('all_label', None, '')
 
 FLAGS = flags.FLAGS
 
 
 def _bytes_feature(value):
-  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
 
 def main(_):
 
@@ -120,7 +122,8 @@ def main(_):
         dic = np.load(os.path.join(temp_name, 'train', train[i])).item()
         patch = dic['patch']
         label = dic['label']
-
+        if FLAGS.all_label is not None:
+            label = FLAGS.all_label
         patch_raw = patch.tostring()
         label_raw = np.array([label]).astype(np.int32).tostring()
         example = tf.train.Example(features=tf.train.Features(feature={
