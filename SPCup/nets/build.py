@@ -5,6 +5,8 @@ def net(x, FLAGS, is_training, num_classes):
     type = FLAGS.type
     if type == 'resnet':
         from nets import resnet as my_net
+    elif type == 'resnet_old':
+        from nets import resnet_old as my_net
     elif type == 'slim':
         from nets import slim as my_net
     elif type == 'rgb':

@@ -21,6 +21,7 @@ flags.DEFINE_integer('blocks', 5, '')
 flags.DEFINE_string('out_file', '', '')
 flags.DEFINE_string('type', '', '')
 flags.DEFINE_integer('num_classes', 10, '')
+flags.DEFINE_float('weight_decay', 0.00004, '')
 
 FLAGS = flags.FLAGS
 
